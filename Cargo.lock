@@ -550,7 +550,7 @@ dependencies = [
 [[package]]
 name = "stellar-xdr"
 version = "22.0.0"
-source = "git+https://github.com/stellar/rs-stellar-xdr?rev=b5516843b6379e4e29520bf2ba156484f62edc46#b5516843b6379e4e29520bf2ba156484f62edc46"
+source = "git+https://github.com/FatemehJazaei/keyhan-xdr.git?rev=1deb6aff63dbae489058240355a29f88d7e298b6"
 dependencies = [
  "crate-git-revision",
  "escape-bytes",

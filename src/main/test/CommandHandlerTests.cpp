@@ -87,7 +87,7 @@ TEST_CASE_VERSIONS("transaction envelope bridge", "[commandhandler]")
 
                 TransactionEnvelope env(ENVELOPE_TYPE_TX_V0);
                 auto& tx = env.v0().tx;
-                tx.sourceAccountEd25519 = root.getPublicKey().ed25519();
+                tx.sourceAccountDilithium2 = root.getPublicKey().dilithium2();
                 tx.fee = baseFee;
                 tx.seqNum = root.nextSequenceNumber();
                 tx.operations.emplace_back(payment(root, 1));

@@ -31,8 +31,8 @@ template <typename T> struct KeyFunctions
     toKeyType(strKey::StrKeyVersionByte keyVersion);
     static strKey::StrKeyVersionByte
     toKeyVersion(typename getKeyTypeEnum::type keyType);
-    static uint256& getEd25519Value(T& key);
-    static uint256 const& getEd25519Value(T const& key);
+    static xdr::opaque_vec<1312>& getDilithium2Value(T& key);
+    static xdr::opaque_vec<1312> const& getDilithium2Value(T const& key);
 
     static std::vector<uint8_t> getKeyValue(T const& key);
     static void setKeyValue(T& key, std::vector<uint8_t> const& data);
@@ -125,8 +125,8 @@ convertKey(F const& fromKey)
     T toKey;
     toKey.type(KeyFunctions<T>::toKeyType(
         KeyFunctions<F>::toKeyVersion(fromKey.type())));
-    KeyFunctions<T>::getEd25519Value(toKey) =
-        KeyFunctions<F>::getEd25519Value(fromKey);
+    KeyFunctions<T>::getDilithium2Value(toKey) =
+        KeyFunctions<F>::getDilithium2Value(fromKey);
     return toKey;
 }
 }

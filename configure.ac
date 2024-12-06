@@ -6,7 +6,7 @@
 # of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
 AC_PREREQ([2.68])
-AC_INIT([stellar-core],[0.1],[],[],[http://www.stellar.org])
+AC_INIT([keyhan-core],[0.1],[],[],[])
 # tar-ustar is required for long file names when libsodium is bundled
 AM_INIT_AUTOMAKE([-Wall -Wextra -Wconversion subdir-objects tar-ustar silent-rules])
 AC_CONFIG_SRCDIR([configure.ac])
@@ -317,6 +317,21 @@ fi
 AM_CONDITIONAL(LIBMEDIDA_INTERNAL, test -n "$libmedida_INTERNAL")
 AC_SUBST(libmedida_CFLAGS)
 AC_SUBST(libmedida_LIBS)
+
+AC_MSG_CHECKING([for Dilithium libraries in stellar-core/lib/dilithium])
+
+DILITHIUM_DIR="$srcdir/lib/dilithium"
+DILITHIUM_LIBS="-L$DILITHIUM_DIR -lpqcrystals_fips202_ref -lpqcrystals_dilithium2_ref"
+DILITHIUM_CFLAGS="-I$DILITHIUM_DIR"
+
+if test -f "$DILITHIUM_DIR/libpqcrystals_fips202_ref.a" && test -f "$DILITHIUM_DIR/libpqcrystals_dilithium2_ref.a"; then
+    AC_MSG_RESULT([found])
+else
+    AC_MSG_ERROR([Dilithium libraries not found in $DILITHIUM_DIR])
+fi
+
+AC_SUBST(DILITHIUM_LIBS)
+AC_SUBST(DILITHIUM_CFLAGS)
 
 soci_CFLAGS='-isystem $(top_srcdir)/lib/soci/src/core'
 soci_LIBS='$(top_builddir)/lib/libsoci.a'

@@ -1254,13 +1254,13 @@ makeAsset(std::string const& code, AccountID const& issuer)
 
 TEST_CASE("liquidity pool id", "[tx][liquiditypool]")
 {
-    AccountID acc1(PUBLIC_KEY_TYPE_ED25519);
-    acc1.ed25519() = hexToBin256("0123456789abcdef0123456789abcdef"
-                                 "0123456789abcdef0123456789abcdef");
+    AccountID acc1(PUBLIC_KEY_TYPE_DILITHIUM2);
+    acc1.dilithium2() = hexToBin256("0123456789abcdef0123456789abcdef"
+                                    "0123456789abcdef0123456789abcdef");
 
-    AccountID acc2(PUBLIC_KEY_TYPE_ED25519);
-    acc2.ed25519() = hexToBin256("abcdef0123456789abcdef0123456789"
-                                 "abcdef0123456789abcdef0123456789");
+    AccountID acc2(PUBLIC_KEY_TYPE_DILITHIUM2);
+    acc2.dilithium2() = hexToBin256("abcdef0123456789abcdef0123456789"
+                                    "abcdef0123456789abcdef0123456789");
 
     // NATIVE and ALPHANUM4 (short and full length)
     testGetPoolID(

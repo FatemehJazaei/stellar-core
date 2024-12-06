@@ -514,12 +514,12 @@ BucketIndexImpl<IndexT>::getOfferRange() const
 {
     // Get the smallest and largest possible offer keys
     LedgerKey upperBound(OFFER);
-    upperBound.offer().sellerID.ed25519().fill(
+    upperBound.offer().sellerID.dilithium2().fill(
         std::numeric_limits<uint8_t>::max());
     upperBound.offer().offerID = std::numeric_limits<int64_t>::max();
 
     LedgerKey lowerBound(OFFER);
-    lowerBound.offer().sellerID.ed25519().fill(
+    lowerBound.offer().sellerID.dilithium2().fill(
         std::numeric_limits<uint8_t>::min());
     lowerBound.offer().offerID = std::numeric_limits<int64_t>::min();
 

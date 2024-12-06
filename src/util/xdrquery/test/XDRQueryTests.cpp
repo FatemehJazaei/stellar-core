@@ -21,11 +21,11 @@ makeAccountEntry(int64_t balance)
     LedgerEntry accountEntry;
     accountEntry.data.type(ACCOUNT);
     auto& account = accountEntry.data.account();
-    account.accountID.ed25519().back() = 111;
+    account.accountID.dilithium2().back() = 111;
     account.balance = balance;
     account.seqNum = std::numeric_limits<int64_t>::max();
     account.numSubEntries = std::numeric_limits<uint32_t>::min();
-    account.inflationDest.activate().ed25519()[0] = 78;
+    account.inflationDest.activate().dilithium2()[0] = 78;
     account.homeDomain = "home_domain";
     account.thresholds[0] = 1;
     account.thresholds[2] = 2;
@@ -48,7 +48,7 @@ makeOfferEntry(std::string const& assetName)
         offerEntry.data.offer().selling.type(ASSET_TYPE_CREDIT_ALPHANUM4);
         strToAssetCode(offerEntry.data.offer().selling.alphaNum4().assetCode,
                        assetName);
-        offerEntry.data.offer().selling.alphaNum4().issuer.ed25519().back() =
+        offerEntry.data.offer().selling.alphaNum4().issuer.dilithium2().back() =
             111;
     }
     else
@@ -56,8 +56,10 @@ makeOfferEntry(std::string const& assetName)
         offerEntry.data.offer().selling.type(ASSET_TYPE_CREDIT_ALPHANUM12);
         strToAssetCode(offerEntry.data.offer().selling.alphaNum12().assetCode,
                        assetName);
-        offerEntry.data.offer().selling.alphaNum12().issuer.ed25519().back() =
-            111;
+        offerEntry.data.offer()
+            .selling.alphaNum12()
+            .issuer.dilithium2()
+            .back() = 111;
     }
 
     return offerEntry;
@@ -192,9 +194,9 @@ TEST_CASE("XDR field resolver", "[xdrquery]")
             }
             auto testAlphaNum = [&](auto& alphaNum, std::string const& code) {
                 strToAssetCode(alphaNum.assetCode, code);
-                std::copy(account.accountID.ed25519().begin(),
-                          account.accountID.ed25519().end(),
-                          alphaNum.issuer.ed25519().begin());
+                std::copy(account.accountID.dilithium2().begin(),
+                          account.accountID.dilithium2().end(),
+                          alphaNum.issuer.dilithium2().begin());
                 SECTION("assetCode")
                 {
                     auto currFieldPath = fieldPath;

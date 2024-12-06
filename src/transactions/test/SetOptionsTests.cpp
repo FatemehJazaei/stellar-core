@@ -547,16 +547,16 @@ TEST_CASE_VERSIONS("set options", "[tx][setoptions]")
                 }
             });
         }
-        SECTION("ed25519 payload signer")
+        SECTION("dilithium2 payload signer")
         {
             SignerKey a1Signer;
-            a1Signer.type(SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD);
-            a1Signer.ed25519SignedPayload().ed25519 =
-                a1.getPublicKey().ed25519();
-            a1Signer.ed25519SignedPayload().payload.emplace_back('s');
+            a1Signer.type(SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD);
+            a1Signer.dilithium2SignedPayload().dilithium2 =
+                a1.getPublicKey().dilithium2();
+            a1Signer.dilithium2SignedPayload().payload.emplace_back('s');
             Signer sk(a1Signer, 1);
 
-            a1Signer.ed25519SignedPayload().payload.clear();
+            a1Signer.dilithium2SignedPayload().payload.clear();
             Signer skEmptyPayload(a1Signer, 1);
 
             for_versions_to(18, *app, [&]() {

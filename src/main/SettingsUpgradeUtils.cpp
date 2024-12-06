@@ -121,8 +121,8 @@ getCreateTx(PublicKey const& publicKey, LedgerKey const& contractCodeLedgerKey,
 
     ContractIDPreimage idPreimage(CONTRACT_ID_PREIMAGE_FROM_ADDRESS);
     idPreimage.fromAddress().address.type(SC_ADDRESS_TYPE_ACCOUNT);
-    idPreimage.fromAddress().address.accountId().ed25519() =
-        publicKey.ed25519();
+    idPreimage.fromAddress().address.accountId().dilithium2() =
+        publicKey.dilithium2();
     idPreimage.fromAddress().salt = autocheck::generator<Hash>()(5);
 
     HashIDPreimage fullPreImage;

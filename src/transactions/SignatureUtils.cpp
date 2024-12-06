@@ -23,7 +23,7 @@ sign(SecretKey const& secretKey, Hash const& hash)
     ZoneScoped;
     DecoratedSignature result;
     result.signature = secretKey.sign(hash);
-    result.hint = getHint(secretKey.getPublicKey().ed25519());
+    result.hint = getHint(secretKey.getPublicKey().dilithium2());
     return result;
 }
 
@@ -38,7 +38,7 @@ verify(DecoratedSignature const& sig, SignerKey const& signerKey,
 bool
 verify(DecoratedSignature const& sig, PublicKey const& pubKey, Hash const& hash)
 {
-    if (!doesHintMatch(pubKey.ed25519(), sig.hint))
+    if (!doesHintMatch(pubKey.dilithium2(), sig.hint))
     {
         return false;
     }
@@ -46,16 +46,16 @@ verify(DecoratedSignature const& sig, PublicKey const& pubKey, Hash const& hash)
 }
 
 bool
-verifyEd25519SignedPayload(DecoratedSignature const& sig,
-                           SignerKey const& signer)
+verifyDilithium2SignedPayload(DecoratedSignature const& sig,
+                              SignerKey const& signer)
 {
-    auto const& signedPayload = signer.ed25519SignedPayload();
+    auto const& signedPayload = signer.dilithium2SignedPayload();
 
     if (!doesHintMatch(getSignedPayloadHint(signedPayload), sig.hint))
         return false;
 
     PublicKey pubKey;
-    pubKey.ed25519() = signedPayload.ed25519;
+    pubKey.dilithium2() = signedPayload.dilithium2;
 
     return PubKeyUtils::verifySig(pubKey, sig.signature, signedPayload.payload);
 }
@@ -91,9 +91,9 @@ verifyHashX(DecoratedSignature const& sig, SignerKey const& signerKey)
 }
 
 SignatureHint
-getSignedPayloadHint(SignerKey::_ed25519SignedPayload_t const& signedPayload)
+getSignedPayloadHint(SignerKey::_dilithium2SignedPayload_t const& signedPayload)
 {
-    auto pubKeyHint = getHint(signedPayload.ed25519);
+    auto pubKeyHint = getHint(signedPayload.dilithium2);
     auto payloadHint = getHint(signedPayload.payload);
     SignatureHint hint;
     hint[0] = pubKeyHint[0] ^ payloadHint[0];

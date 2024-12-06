@@ -23,6 +23,11 @@
 #include <sodium.h>
 #include <type_traits>
 
+extern "C"
+{
+#include "dilithium.h"
+}
+
 #ifdef MSAN_ENABLED
 #include <sanitizer/msan_interface.h>
 #endif
@@ -34,7 +39,7 @@
 namespace stellar
 {
 
-// Process-wide global Ed25519 signature-verification cache.
+// Process-wide global Dilithium2 signature-verification cache.
 //
 // This is a pure mathematical function and has no relationship
 // to the state of the process; caching its results centrally
@@ -51,24 +56,26 @@ static Hash
 verifySigCacheKey(PublicKey const& key, Signature const& signature,
                   ByteSlice const& bin)
 {
-    releaseAssert(key.type() == PUBLIC_KEY_TYPE_ED25519);
+    releaseAssert(key.type() == PUBLIC_KEY_TYPE_DILITHIUM2);
 
     BLAKE2 hasher;
-    hasher.add(key.ed25519());
+    hasher.add(key.dilithium2());
     hasher.add(signature);
     hasher.add(bin);
     return hasher.finish();
 }
 
-SecretKey::SecretKey() : mKeyType(PUBLIC_KEY_TYPE_ED25519)
+SecretKey::SecretKey() : mKeyType(PUBLIC_KEY_TYPE_DILITHIUM2)
 {
-    static_assert(crypto_sign_PUBLICKEYBYTES == sizeof(uint256),
+    static_assert(pqcrystals_dilithium2_ref_PUBLICKEYBYTES ==
+                      sizeof(xdr::opaque_vec<1312>),
                   "Unexpected public key length");
-    static_assert(crypto_sign_SEEDBYTES == sizeof(uint256),
+    static_assert(pqcrystals_dilithium2_ref_SEEDBYTES == sizeof(uint256),
                   "Unexpected seed length");
-    static_assert(crypto_sign_SECRETKEYBYTES == sizeof(uint512),
+    static_assert(pqcrystals_dilithium2_ref_SECRETKEYBYTES ==
+                      sizeof(xdr::opaque_vec<2560>),
                   "Unexpected secret key length");
-    static_assert(crypto_sign_BYTES == sizeof(uint512),
+    static_assert(pqcrystals_dilithium2_ref_BYTES == sizeof(xdr::opaque_vec<2420>),
                   "Unexpected signature length");
 }
 
@@ -91,24 +98,25 @@ SecretKey::getPublicKey() const
 SecretKey::Seed
 SecretKey::getSeed() const
 {
-    releaseAssert(mKeyType == PUBLIC_KEY_TYPE_ED25519);
+    releaseAssert(mKeyType == PUBLIC_KEY_TYPE_DILITHIUM2);
 
     Seed seed;
     seed.mKeyType = mKeyType;
-    if (crypto_sign_ed25519_sk_to_seed(seed.mSeed.data(), mSecretKey.data()) !=
-        0)
-    {
-        throw CryptoError("error extracting seed from secret key");
-    }
+    // if (crypto_sign_ed25519_sk_to_seed(seed.mSeed.data(),
+    //                                       mSecretKey.data()) != 0)
+    // {
+    //     throw CryptoError("error extracting seed from secret key");
+    // }
+    seed.mSeed.data() = dilithium2RandomSecret().key.data();
     return seed;
 }
 
 SecretValue
 SecretKey::getStrKeySeed() const
 {
-    releaseAssert(mKeyType == PUBLIC_KEY_TYPE_ED25519);
+    releaseAssert(mKeyType == PUBLIC_KEY_TYPE_DILITHIUM2);
 
-    return strKey::toStrKey(strKey::STRKEY_SEED_ED25519, getSeed().mSeed);
+    return strKey::toStrKey(strKey::STRKEY_SEED_DILITHIUM2, getSeed().mSeed);
 }
 
 std::string
@@ -134,11 +142,17 @@ Signature
 SecretKey::sign(ByteSlice const& bin) const
 {
     ZoneScoped;
-    releaseAssert(mKeyType == PUBLIC_KEY_TYPE_ED25519);
-
-    Signature out(crypto_sign_BYTES, 0);
-    if (crypto_sign_detached(out.data(), NULL, bin.data(), bin.size(),
-                             mSecretKey.data()) != 0)
+    releaseAssert(mKeyType == PUBLIC_KEY_TYPE_DILITHIUM2);
+    // Signature out(crypto_sign_BYTES, 0);
+    // if (crypto_sign_detached(out.data(), NULL, bin.data(), bin.size(),
+    //                          mSecretKey.data()) != 0)
+    // {
+    //     throw CryptoError("error while signing");
+    // }
+    Signature out(pqcrystals_dilithium2_ref_BYTES, 0);
+    if (pqcrystals_dilithium2_ref_signature(
+            out.data(), &pqcrystals_dilithium2_ref_BYTES, bin.data(),
+            bin.size(), nullptr, 0, mSecretKey.data()) != 0)
     {
         throw CryptoError("error while signing");
     }
@@ -149,9 +163,16 @@ SecretKey
 SecretKey::random()
 {
     SecretKey sk;
-    releaseAssert(sk.mKeyType == PUBLIC_KEY_TYPE_ED25519);
-    if (crypto_sign_keypair(sk.mPublicKey.ed25519().data(),
-                            sk.mSecretKey.data()) != 0)
+    releaseAssert(sk.mKeyType == PUBLIC_KEY_TYPE_DILITHIUM2);
+    // if (crypto_sign_keypair(sk.mPublicKey.ed25519().data(),
+    //                         sk.mSecretKey.data()) != 0)
+    // {
+    //     throw CryptoError("error generating random secret key");
+    // }
+    Dilithium2Secret seed = dilithium2RandomSecret();
+    if (pqcrystals_dilithium2_ref_seed(sk.mPublicKey.dilithium2().data(),
+                                       sk.mSecretKey.data(),
+                                       seed.key.data()) != 0)
     {
         throw CryptoError("error generating random secret key");
     }
@@ -277,14 +298,22 @@ SecretKey
 SecretKey::fromSeed(ByteSlice const& seed)
 {
     SecretKey sk;
-    releaseAssert(sk.mKeyType == PUBLIC_KEY_TYPE_ED25519);
-
-    if (seed.size() != crypto_sign_SEEDBYTES)
+    releaseAssert(sk.mKeyType == PUBLIC_KEY_TYPE_DILITHIUM2);
+    // if (seed.size() != crypto_sign_SEEDBYTES)
+    // {
+    //     throw CryptoError("seed does not match byte size");
+    // }
+    // if (crypto_sign_seed_keypair(sk.mPublicKey.dilithium2().data(),
+    //                              sk.mSecretKey.data(), seed.data()) != 0)
+    // {
+    //     throw CryptoError("error generating secret key from seed");
+    // }
+    if (seed.size() != pqcrystals_dilithium2_ref_SEEDBYTES)
     {
         throw CryptoError("seed does not match byte size");
     }
-    if (crypto_sign_seed_keypair(sk.mPublicKey.ed25519().data(),
-                                 sk.mSecretKey.data(), seed.data()) != 0)
+    if (pqcrystals_dilithium2_ref_seed(sk.mPublicKey.dilithium2().data(),
+                                       sk.mSecretKey.data(), seed.data()) != 0)
     {
         throw CryptoError("error generating secret key from seed");
     }
@@ -297,17 +326,18 @@ SecretKey::fromStrKeySeed(std::string const& strKeySeed)
     uint8_t ver;
     std::vector<uint8_t> seed;
     if (!strKey::fromStrKey(strKeySeed, ver, seed) ||
-        (ver != strKey::STRKEY_SEED_ED25519) ||
-        (seed.size() != crypto_sign_SEEDBYTES) ||
-        (strKeySeed.size() != strKey::getStrKeySize(crypto_sign_SEEDBYTES)))
+        (ver != strKey::STRKEY_SEED_DILITHIUM2) ||
+        (seed.size() != pqcrystals_dilithium2_ref_SEEDBYTES) ||
+        (strKeySeed.size() !=
+         strKey::getStrKeySize(pqcrystals_dilithium2_ref_SEEDBYTES)))
     {
         throw CryptoError("invalid seed");
     }
 
     SecretKey sk;
-    releaseAssert(sk.mKeyType == PUBLIC_KEY_TYPE_ED25519);
-    if (crypto_sign_seed_keypair(sk.mPublicKey.ed25519().data(),
-                                 sk.mSecretKey.data(), seed.data()) != 0)
+    releaseAssert(sk.mKeyType == PUBLIC_KEY_TYPE_DILITHIUM2);
+    if (pqcrystals_dilithium2_ref_seed(sk.mPublicKey.dilithium2().data(),
+                                       sk.mSecretKey.data(), seed.data()) != 0)
     {
         throw CryptoError("error generating secret key from seed");
     }
@@ -350,7 +380,7 @@ KeyFunctions<PublicKey>::getKeyVersionIsSupported(
 {
     switch (keyVersion)
     {
-    case strKey::STRKEY_PUBKEY_ED25519:
+    case strKey::STRKEY_PUBKEY_DILITHIUM2:
         return true;
     default:
         return false;
@@ -369,8 +399,8 @@ KeyFunctions<PublicKey>::toKeyType(strKey::StrKeyVersionByte keyVersion)
 {
     switch (keyVersion)
     {
-    case strKey::STRKEY_PUBKEY_ED25519:
-        return PublicKeyType::PUBLIC_KEY_TYPE_ED25519;
+    case strKey::STRKEY_PUBKEY_DILITHIUM2:
+        return PublicKeyType::PUBLIC_KEY_TYPE_DILITHIUM2;
     default:
         throw CryptoError("invalid public key type");
     }
@@ -381,32 +411,32 @@ KeyFunctions<PublicKey>::toKeyVersion(PublicKeyType keyType)
 {
     switch (keyType)
     {
-    case PublicKeyType::PUBLIC_KEY_TYPE_ED25519:
-        return strKey::STRKEY_PUBKEY_ED25519;
+    case PublicKeyType::PUBLIC_KEY_TYPE_DILITHIUM2:
+        return strKey::STRKEY_PUBKEY_DILITHIUM2;
     default:
         throw CryptoError("invalid public key type");
     }
 }
 
-uint256&
-KeyFunctions<PublicKey>::getEd25519Value(PublicKey& key)
+xdr::opaque_vec<1312>&
+KeyFunctions<PublicKey>::getDilithium2Value(PublicKey& key)
 {
     switch (key.type())
     {
-    case PUBLIC_KEY_TYPE_ED25519:
-        return key.ed25519();
+    case PUBLIC_KEY_TYPE_DILITHIUM2:
+        return key.dilithium2();
     default:
         throw CryptoError("invalid public key type");
     }
 }
 
-uint256 const&
-KeyFunctions<PublicKey>::getEd25519Value(PublicKey const& key)
+xdr::opaque_vec<1312> const&
+KeyFunctions<PublicKey>::getDilithium2Value(PublicKey const& key)
 {
     switch (key.type())
     {
-    case PUBLIC_KEY_TYPE_ED25519:
-        return key.ed25519();
+    case PUBLIC_KEY_TYPE_DILITHIUM2:
+        return key.dilithium2();
     default:
         throw CryptoError("invalid public key type");
     }
@@ -415,7 +445,7 @@ KeyFunctions<PublicKey>::getEd25519Value(PublicKey const& key)
 std::vector<uint8_t>
 KeyFunctions<PublicKey>::getKeyValue(PublicKey const& key)
 {
-    return xdr::xdr_to_opaque(getEd25519Value(key));
+    return xdr::xdr_to_opaque(getDilithium2Value(key));
 }
 
 void
@@ -424,8 +454,8 @@ KeyFunctions<PublicKey>::setKeyValue(PublicKey& key,
 {
     switch (key.type())
     {
-    case PUBLIC_KEY_TYPE_ED25519:
-        xdr::xdr_from_opaque(data, key.ed25519());
+    case PUBLIC_KEY_TYPE_DILITHIUM2:
+        xdr::xdr_from_opaque(data, key.dilithium2());
         break;
     default:
         throw CryptoError("invalid public key type");
@@ -437,8 +467,8 @@ PubKeyUtils::verifySig(PublicKey const& key, Signature const& signature,
                        ByteSlice const& bin)
 {
     ZoneScoped;
-    releaseAssert(key.type() == PUBLIC_KEY_TYPE_ED25519);
-    if (signature.size() != 64)
+    releaseAssert(key.type() == PUBLIC_KEY_TYPE_DILITHIUM2);
+    if (signature.size() != 2420)
     {
         return false;
     }
@@ -458,9 +488,14 @@ PubKeyUtils::verifySig(PublicKey const& key, Signature const& signature,
 
     std::string missStr("miss");
     ZoneText(missStr.c_str(), missStr.size());
+    // bool ok =
+    //     (crypto_sign_verify_detached(signature.data(), bin.data(),
+    //     bin.size(),
+    //                                  key.dilithium2().data()) == 0);
     bool ok =
-        (crypto_sign_verify_detached(signature.data(), bin.data(), bin.size(),
-                                     key.ed25519().data()) == 0);
+        (pqcrystals_dilithium2_ref_verify(
+             signature.data(), pqcrystals_dilithium2_ref_BYTES, bin.data(),
+             bin.size(), nullptr, 0, key.dilithium2().data()) == 0);
     std::lock_guard<std::mutex> guard(gVerifySigCacheMutex);
     ++gVerifyCacheMiss;
     gVerifySigCache.put(cacheKey, ok);
@@ -471,9 +506,9 @@ PublicKey
 PubKeyUtils::random()
 {
     PublicKey pk;
-    pk.type(PUBLIC_KEY_TYPE_ED25519);
-    pk.ed25519().resize(crypto_sign_PUBLICKEYBYTES);
-    randombytes_buf(pk.ed25519().data(), pk.ed25519().size());
+    pk.type(PUBLIC_KEY_TYPE_DILITHIUM2);
+    pk.dilithium2().resize(pqcrystals_dilithium2_ref_PUBLICKEYBYTES);
+    randombytes_buf(pk.dilithium2().data(), pk.dilithium2().size());
     return pk;
 }
 
@@ -490,7 +525,7 @@ logPublicKey(std::ostream& s, PublicKey const& pk)
 {
     s << "PublicKey:" << std::endl
       << "  strKey: " << KeyUtils::toStrKey(pk) << std::endl
-      << "  hex: " << binToHex(pk.ed25519()) << std::endl;
+      << "  hex: " << binToHex(pk.dilithium2()) << std::endl;
 }
 
 static void
@@ -530,10 +565,10 @@ StrKeyUtils::logKey(std::ostream& s, std::string const& key)
     // if it's a hex string, display it in all forms
     try
     {
-        uint256 data = hexToBin256(key);
+        std::vector<uint8_t> data = hexToBin256(key);
         PublicKey pk;
-        pk.type(PUBLIC_KEY_TYPE_ED25519);
-        pk.ed25519() = data;
+        pk.type(PUBLIC_KEY_TYPE_DILITHIUM2);
+        pk.dilithium2() = data;
         s << "Interpreted as ";
         logPublicKey(s, pk);
 
@@ -550,10 +585,12 @@ StrKeyUtils::logKey(std::ostream& s, std::string const& key)
         s << "  STRKEY_HASH_X: "
           << strKey::toStrKey(strKey::STRKEY_HASH_X, data).value << std::endl;
         s << "  STRKEY_SIGNED_PAYLOAD: "
-          << strKey::toStrKey(strKey::STRKEY_SIGNED_PAYLOAD_ED25519, data).value
+          << strKey::toStrKey(strKey::STRKEY_SIGNED_PAYLOAD_DILITHIUM2, data)
+                 .value
           << std::endl;
-        s << "  STRKEY_MUXED_ACCOUNT_ED25519: "
-          << strKey::toStrKey(strKey::STRKEY_MUXED_ACCOUNT_ED25519, data).value
+        s << "  STRKEY_MUXED_ACCOUNT_DILITHIUM2: "
+          << strKey::toStrKey(strKey::STRKEY_MUXED_ACCOUNT_DILITHIUM2, data)
+                 .value
           << std::endl;
         s << "  STRKEY_CONTRACT: "
           << strKey::toStrKey(strKey::STRKEY_CONTRACT, data).value << std::endl;
@@ -572,14 +609,14 @@ StrKeyUtils::logKey(std::ostream& s, std::string const& key)
         s << "StrKey:" << std::endl;
         switch (outVersion)
         {
-        case strKey::STRKEY_PUBKEY_ED25519:
-            s << "  type: STRKEY_PUBKEY_ED25519" << std::endl;
+        case strKey::STRKEY_PUBKEY_DILITHIUM2:
+            s << "  type: STRKEY_PUBKEY_DILITHIUM2" << std::endl;
             break;
-        case strKey::STRKEY_SIGNED_PAYLOAD_ED25519:
-            s << "  type: STRKEY_SIGNED_PAYLOAD_ED25519" << std::endl;
+        case strKey::STRKEY_SIGNED_PAYLOAD_DILITHIUM2:
+            s << "  type: STRKEY_SIGNED_PAYLOAD_DILITHIUM2" << std::endl;
             break;
-        case strKey::STRKEY_SEED_ED25519:
-            s << "  type: STRKEY_SEED_ED25519" << std::endl;
+        case strKey::STRKEY_SEED_DILITHIUM2:
+            s << "  type: STRKEY_SEED_DILITHIUM2" << std::endl;
             break;
         case strKey::STRKEY_PRE_AUTH_TX:
             s << "  type: STRKEY_PRE_AUTH_TX" << std::endl;
@@ -587,9 +624,9 @@ StrKeyUtils::logKey(std::ostream& s, std::string const& key)
         case strKey::STRKEY_HASH_X:
             s << "  type: STRKEY_HASH_X" << std::endl;
             break;
-        case strKey::STRKEY_MUXED_ACCOUNT_ED25519:
+        case strKey::STRKEY_MUXED_ACCOUNT_DILITHIUM2:
             throw std::runtime_error(
-                "unexpected StrKey type STRKEY_MUXED_ACCOUNT_ED25519");
+                "unexpected StrKey type STRKEY_MUXED_ACCOUNT_DILITHIUM2");
             break;
         case strKey::STRKEY_CONTRACT:
             s << "  type: STRKEY_CONTRACT" << std::endl;
@@ -634,8 +671,8 @@ size_t
 hash<stellar::PublicKey>::operator()(stellar::PublicKey const& k) const noexcept
 {
     using namespace stellar;
-    releaseAssert(k.type() == stellar::PUBLIC_KEY_TYPE_ED25519);
+    releaseAssert(k.type() == stellar::PUBLIC_KEY_TYPE_DILITHIUM2);
 
-    return std::hash<stellar::uint256>()(k.ed25519());
+    return std::hash<xdr::opaque_vec<1312>>()(k.dilithium2());
 }
 }

@@ -58,15 +58,15 @@ cereal_override(cereal::JSONOutputArchive& ar,
 {
     switch (muxedAccount.type())
     {
-    case stellar::KEY_TYPE_ED25519:
+    case stellar::KEY_TYPE_DILITHIUM2:
         xdr::archive(ar, stellar::KeyUtils::toStrKey(toAccountID(muxedAccount)),
                      field);
         return;
-    case stellar::KEY_TYPE_MUXED_ED25519:
+    case stellar::KEY_TYPE_MUXED_DILITHIUM2:
         xdr::archive(
             ar,
             std::make_tuple(
-                cereal::make_nvp("id", muxedAccount.med25519().id),
+                cereal::make_nvp("id", muxedAccount.mdilithium2().id),
                 cereal::make_nvp("accountID", stellar::KeyUtils::toStrKey(
                                                   toAccountID(muxedAccount)))),
             field);

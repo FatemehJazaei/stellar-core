@@ -20,7 +20,7 @@ namespace SignerKeyUtils
 SignerKey preAuthTxKey(TransactionFrame const& tx);
 SignerKey preAuthTxKey(FeeBumpTransactionFrame const& tx);
 SignerKey hashXKey(ByteSlice const& bs);
-SignerKey ed25519PayloadKey(uint256 const& ed25519,
-                            xdr::opaque_vec<64> const& payload);
+SignerKey dilithium2PayloadKey(xdr::opaque_vec<1312> const& dilithium2,
+                               xdr::opaque_vec<64> const& payload);
 }
 }

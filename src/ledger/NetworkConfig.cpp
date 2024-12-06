@@ -279,12 +279,12 @@ initialCpuCostParamsEntryForV20()
         case ComputeSha256Hash:
             params[val] = ContractCostParamEntry{ExtensionPoint{0}, 3738, 7012};
             break;
-        case ComputeEd25519PubKey:
-            params[val] = ContractCostParamEntry{ExtensionPoint{0}, 40253, 0};
+        case ComputeDilithium2PubKey:
+            params[val] = ContractCostParamEntry{ExtensionPoint{0}, 80000, 0};
             break;
-        case VerifyEd25519Sig:
+        case VerifyDilithium2Sig:
             params[val] =
-                ContractCostParamEntry{ExtensionPoint{0}, 377524, 4068};
+                ContractCostParamEntry{ExtensionPoint{0}, 700000, 8000};
             break;
         case VmInstantiation:
             params[val] =
@@ -644,10 +644,10 @@ initialMemCostParamsEntryForV20()
         case ComputeSha256Hash:
             params[val] = ContractCostParamEntry{ExtensionPoint{0}, 0, 0};
             break;
-        case ComputeEd25519PubKey:
+        case ComputeDilithium2PubKey:
             params[val] = ContractCostParamEntry{ExtensionPoint{0}, 0, 0};
             break;
-        case VerifyEd25519Sig:
+        case VerifyDilithium2Sig:
             params[val] = ContractCostParamEntry{ExtensionPoint{0}, 0, 0};
             break;
         case VmInstantiation:
@@ -1970,11 +1970,11 @@ SorobanNetworkConfig::updateRecalibratedCostTypesForV20(
             cpuParams[val] =
                 ContractCostParamEntry{ExtensionPoint{0}, 3636, 7013};
             break;
-        case ComputeEd25519PubKey:
+        case ComputeDilithium2PubKey:
             cpuParams[val] =
                 ContractCostParamEntry{ExtensionPoint{0}, 40256, 0};
             break;
-        case VerifyEd25519Sig:
+        case VerifyDilithium2Sig:
             cpuParams[val] =
                 ContractCostParamEntry{ExtensionPoint{0}, 377551, 4059};
             break;

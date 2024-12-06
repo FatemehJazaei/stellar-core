@@ -17,13 +17,13 @@ namespace strKey
 enum StrKeyVersionByte : uint8_t
 {
     // version bytes - 5 bits only
-    STRKEY_PUBKEY_ED25519 = 6,          // 'G'
-    STRKEY_SIGNED_PAYLOAD_ED25519 = 15, // 'P'
-    STRKEY_SEED_ED25519 = 18,           // 'S'
-    STRKEY_PRE_AUTH_TX = 19,            // 'T'
-    STRKEY_HASH_X = 23,                 // 'X'
-    STRKEY_MUXED_ACCOUNT_ED25519 = 12,  // 'M'
-    STRKEY_CONTRACT = 2,                // 'C'
+    STRKEY_PUBKEY_DILITHIUM2 = 3,          // 'D'
+    STRKEY_SIGNED_PAYLOAD_DILITHIUM2 = 15, // 'P'
+    STRKEY_SEED_DILITHIUM2 = 4,            // 'E'
+    STRKEY_PRE_AUTH_TX = 19,               // 'T'
+    STRKEY_HASH_X = 23,                    // 'X'
+    STRKEY_MUXED_ACCOUNT_DILITHIUM2 = 12,  // 'M'
+    STRKEY_CONTRACT = 2,                   // 'C'
 };
 
 // Encode a version byte and ByteSlice into StrKey

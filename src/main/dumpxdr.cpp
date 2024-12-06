@@ -433,7 +433,7 @@ signtxns(std::vector<TransactionEnvelope>& txEnvs, std::string netId,
         auto payloadHash = sha256(xdr::xdr_to_opaque(payload));
 
         signatures.emplace_back(
-            SignatureUtils::getHint(sk.getPublicKey().ed25519()),
+            SignatureUtils::getHint(sk.getPublicKey().dilithium2()),
             sk.sign(payloadHash));
 
         auto out = xdr::xdr_to_opaque(txEnv);

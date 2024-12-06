@@ -307,9 +307,9 @@ SetOptionsOpFrame::doCheckValid(uint32_t ledgerVersion,
         }
 
         if (mSetOptions.signer->key.type() ==
-                SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD &&
+                SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD &&
             (protocolVersionIsBefore(ledgerVersion, ProtocolVersion::V_19) ||
-             mSetOptions.signer->key.ed25519SignedPayload().payload.empty()))
+             mSetOptions.signer->key.dilithium2SignedPayload().payload.empty()))
         {
             innerResult(res).code(SET_OPTIONS_BAD_SIGNER);
             return false;

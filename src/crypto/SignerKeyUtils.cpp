@@ -42,12 +42,13 @@ hashXKey(ByteSlice const& bs)
 }
 
 SignerKey
-ed25519PayloadKey(uint256 const& ed25519, xdr::opaque_vec<64> const& payload)
+dilithium2PayloadKey(xdr::opaque_vec<1312> const& dilithium2,
+                     xdr::opaque_vec<64> const& payload)
 {
     SignerKey sk;
-    sk.type(SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD);
-    sk.ed25519SignedPayload().ed25519 = ed25519;
-    sk.ed25519SignedPayload().payload = payload;
+    sk.type(SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD);
+    sk.dilithium2SignedPayload().dilithium2 = dilithium2;
+    sk.dilithium2SignedPayload().payload = payload;
     return sk;
 }
 }

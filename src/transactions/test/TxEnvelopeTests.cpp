@@ -96,7 +96,7 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
 
     const int64_t paymentAmount = app->getLedgerManager().getLastReserve() * 10;
 
-    SECTION("ed25519 payload signer")
+    SECTION("dilithium2 payload signer")
     {
         auto a1 = root.create("a1", paymentAmount);
 
@@ -109,10 +109,10 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
         a1.setSequenceNumber(a1.getLastSequenceNumber() - 1);
 
         SignerKey signerKey;
-        signerKey.type(SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD);
+        signerKey.type(SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD);
         // payload may or may not be populated depending on the test below
-        signerKey.ed25519SignedPayload().ed25519 =
-            root.getPublicKey().ed25519();
+        signerKey.dilithium2SignedPayload().dilithium2 =
+            root.getPublicKey().dilithium2();
 
         for_versions_to(18, *app, [&] {
             REQUIRE_THROWS_AS(a1.setOptions(setSigner(Signer{signerKey, 1})),
@@ -122,7 +122,7 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
         for_versions_from(19, *app, [&] {
             auto testPayloadSignerOnAccount = [&](xdr::opaque_vec<64> payload,
                                                   bool signTx2) {
-                signerKey.ed25519SignedPayload().payload = payload;
+                signerKey.dilithium2SignedPayload().payload = payload;
 
                 Signer sk1(signerKey, 1);
                 a1.setOptions(setSigner(sk1));
@@ -130,9 +130,9 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
 
                 DecoratedSignature sig;
                 sig.signature = root.getSecretKey().sign(
-                    signerKey.ed25519SignedPayload().payload);
+                    signerKey.dilithium2SignedPayload().payload);
                 sig.hint = SignatureUtils::getSignedPayloadHint(
-                    signerKey.ed25519SignedPayload());
+                    signerKey.dilithium2SignedPayload());
 
                 tx->addSignature(sig);
 
@@ -145,8 +145,8 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
                 if (signTx2)
                 {
                     // Now use the signature of the first tx on the second tx
-                    sig.hint =
-                        SignatureUtils::getHint(root.getPublicKey().ed25519());
+                    sig.hint = SignatureUtils::getHint(
+                        root.getPublicKey().dilithium2());
                     tx2->addSignature(sig);
 
                     applyCheck(tx2, *app);
@@ -181,7 +181,7 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
             }
             SECTION("payload signer in extra signers")
             {
-                signerKey.ed25519SignedPayload().payload = {'a', 'a', 'a'};
+                signerKey.dilithium2SignedPayload().payload = {'a', 'a', 'a'};
                 PreconditionsV2 cond;
                 cond.extraSigners.emplace_back(signerKey);
 
@@ -190,9 +190,9 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
 
                 DecoratedSignature sig;
                 sig.signature = root.getSecretKey().sign(
-                    signerKey.ed25519SignedPayload().payload);
+                    signerKey.dilithium2SignedPayload().payload);
                 sig.hint = SignatureUtils::getSignedPayloadHint(
-                    signerKey.ed25519SignedPayload());
+                    signerKey.dilithium2SignedPayload());
 
                 SECTION("success")
                 {
@@ -204,13 +204,13 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
                     REQUIRE(!applyCheck(extraSignerTx, *app));
                 }
             }
-            SECTION("payload signer with zeroed out ed25519")
+            SECTION("payload signer with zeroed out dilithium2")
             {
                 SignerKey zeroKey;
-                zeroKey.type(SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD);
-                zeroKey.ed25519SignedPayload().ed25519 =
-                    xdr::opaque_array<32>{};
-                zeroKey.ed25519SignedPayload().payload = {'a', 'a', 'a'};
+                zeroKey.type(SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD);
+                zeroKey.dilithium2SignedPayload().dilithium2 =
+                    xdr::opaque_array<1312>{};
+                zeroKey.dilithium2SignedPayload().payload = {'a', 'a', 'a'};
 
                 // set the threshold high enough so we will go over every signer
                 // in the SignatureChecker
@@ -222,9 +222,9 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
                 // hint
                 DecoratedSignature sig;
                 sig.signature = root.getSecretKey().sign(
-                    zeroKey.ed25519SignedPayload().payload);
+                    zeroKey.dilithium2SignedPayload().payload);
                 sig.hint = SignatureUtils::getSignedPayloadHint(
-                    zeroKey.ed25519SignedPayload());
+                    zeroKey.dilithium2SignedPayload());
 
                 tx->addSignature(sig);
                 tx->addSignature(a1);
@@ -239,13 +239,13 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
                 auto extraSignerTx =
                     transactionWithV2Precondition(*app, a1, 1, 100, cond);
 
-                REQUIRE(signerKey.ed25519SignedPayload().payload.empty());
+                REQUIRE(signerKey.dilithium2SignedPayload().payload.empty());
 
                 DecoratedSignature sig;
                 sig.signature = root.getSecretKey().sign(
-                    signerKey.ed25519SignedPayload().payload);
+                    signerKey.dilithium2SignedPayload().payload);
                 sig.hint = SignatureUtils::getSignedPayloadHint(
-                    signerKey.ed25519SignedPayload());
+                    signerKey.dilithium2SignedPayload());
 
                 extraSignerTx->addSignature(sig);
                 REQUIRE(!applyCheck(extraSignerTx, *app));
@@ -261,8 +261,8 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
             auto a1 = root.create("a1", minBalance);
 
             SignerKey rootSigner;
-            rootSigner.type(SIGNER_KEY_TYPE_ED25519);
-            rootSigner.ed25519() = root.getPublicKey().ed25519();
+            rootSigner.type(SIGNER_KEY_TYPE_DILITHIUM2);
+            rootSigner.dilithium2() = root.getPublicKey().dilithium2();
 
             auto hashXSigner = SignerKeyUtils::hashXKey("hashx");
 
@@ -755,8 +755,8 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
                                       0,   0,   'G', 'H', 'I', 'J', 'K', 'L'};
 
         xdr::opaque_vec<64> payload(x.begin(), x.end());
-        SignerKey rootPayloadSignerKey = SignerKeyUtils::ed25519PayloadKey(
-            root.getPublicKey().ed25519(), payload);
+        SignerKey rootPayloadSignerKey = SignerKeyUtils::dilithium2PayloadKey(
+            root.getPublicKey().dilithium2(), payload);
 
         auto alternatives = std::vector<AltSignature>{
             AltSignature{"hash tx", true,
@@ -783,7 +783,7 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
                     DecoratedSignature sig;
                     sig.signature = root.getSecretKey().sign(x);
                     sig.hint = SignatureUtils::getSignedPayloadHint(
-                        rootPayloadSignerKey.ed25519SignedPayload());
+                        rootPayloadSignerKey.dilithium2SignedPayload());
                     tx->addSignature(sig);
                 },
                 19},
@@ -874,7 +874,8 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
                             }
                             else
                             {
-                                sk.ed25519SignedPayload().ed25519[0] ^= 0x01;
+                                sk.dilithium2SignedPayload().dilithium2[0] ^=
+                                    0x01;
                             }
                             Signer sk1(sk, 1);
                             a1.setOptions(setSigner(sk1));
@@ -1418,8 +1419,9 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
                             SignerKey s2 =
                                 protocolVersionStartsFrom(ledgerVersion,
                                                           ProtocolVersion::V_19)
-                                    ? SignerKeyUtils::ed25519PayloadKey(
-                                          root.getPublicKey().ed25519(), {'z'})
+                                    ? SignerKeyUtils::dilithium2PayloadKey(
+                                          root.getPublicKey().dilithium2(),
+                                          {'z'})
                                     : SignerKeyUtils::hashXKey("5");
                             Signer signer2(s2, 5);
 
@@ -2443,9 +2445,9 @@ TEST_CASE_VERSIONS("txenvelope", "[tx][envelope]")
     SECTION("mux accounts")
     {
         auto toMux = [](MuxedAccount& id, uint64 memoID) {
-            MuxedAccount muxedID(KEY_TYPE_MUXED_ED25519);
-            auto& mid = muxedID.med25519();
-            mid.ed25519 = id.ed25519();
+            MuxedAccount muxedID(KEY_TYPE_MUXED_DILITHIUM2);
+            auto& mid = muxedID.mdilithium2();
+            mid.dilithium2 = id.dilithium2();
             mid.id = memoID;
             id = muxedID;
         };

@@ -157,7 +157,7 @@ TransactionFrame::getSourceID() const
     if (mEnvelope.type() == ENVELOPE_TYPE_TX_V0)
     {
         AccountID res;
-        res.ed25519() = mEnvelope.v0().tx.sourceAccountEd25519;
+        res.dilithium2() = mEnvelope.v0().tx.sourceAccountDilithium2;
         return res;
     }
     return toAccountID(mEnvelope.v1().tx.sourceAccount);
@@ -917,8 +917,8 @@ TransactionFrame::commonValidPreSeqNum(
 
         for (auto const& signer : extraSigners)
         {
-            if (signer.type() == SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD &&
-                signer.ed25519SignedPayload().payload.empty())
+            if (signer.type() == SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD &&
+                signer.dilithium2SignedPayload().payload.empty())
             {
                 txResult->setInnermostResultCode(txMALFORMED);
                 return false;

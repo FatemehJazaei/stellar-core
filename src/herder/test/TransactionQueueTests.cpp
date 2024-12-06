@@ -945,8 +945,8 @@ TEST_CASE("TransactionQueue with PreconditionsV2", "[herder][transactionqueue]")
         TransactionQueueTest test{queue};
 
         SignerKey a2;
-        a2.type(SIGNER_KEY_TYPE_ED25519);
-        a2.ed25519() = account2.getPublicKey().ed25519();
+        a2.type(SIGNER_KEY_TYPE_DILITHIUM2);
+        a2.dilithium2() = account2.getPublicKey().dilithium2();
 
         PreconditionsV2 cond;
         cond.extraSigners.emplace_back(a2);
@@ -964,8 +964,8 @@ TEST_CASE("TransactionQueue with PreconditionsV2", "[herder][transactionqueue]")
         SECTION("two signers")
         {
             SignerKey rootKey;
-            rootKey.type(SIGNER_KEY_TYPE_ED25519);
-            rootKey.ed25519() = root.getPublicKey().ed25519();
+            rootKey.type(SIGNER_KEY_TYPE_DILITHIUM2);
+            rootKey.dilithium2() = root.getPublicKey().dilithium2();
 
             cond.extraSigners.emplace_back(rootKey);
             auto tx =
@@ -1224,9 +1224,9 @@ TEST_CASE("Soroban tx and memos", "[soroban][transactionqueue]")
     {
         uploadOp.body.invokeHostFunctionOp().auth.emplace_back(sae);
 
-        MuxedAccount muxedAccount(CryptoKeyType::KEY_TYPE_MUXED_ED25519);
-        muxedAccount.med25519().ed25519 = a1.getPublicKey().ed25519();
-        muxedAccount.med25519().id = 1;
+        MuxedAccount muxedAccount(CryptoKeyType::KEY_TYPE_MUXED_DILITHIUM2);
+        muxedAccount.mdilithium2().dilithium2 = a1.getPublicKey().dilithium2();
+        muxedAccount.mdilithium2().id = 1;
         uploadOp.sourceAccount.activate() = muxedAccount;
         auto txWithMuxedOpSource = sorobanTransactionFrameFromOpsWithTotalFee(
             app->getNetworkID(), a1, {uploadOp}, {}, resources,

@@ -14,14 +14,14 @@ KeyUtils::getKeyVersionSize(strKey::StrKeyVersionByte keyVersion)
 {
     switch (keyVersion)
     {
-    case strKey::STRKEY_PUBKEY_ED25519:
-    case strKey::STRKEY_SEED_ED25519:
-        return crypto_sign_PUBLICKEYBYTES;
+    case strKey::STRKEY_PUBKEY_DILITHIUM2:
+    case strKey::STRKEY_SEED_DILITHIUM2:
+        return pqcrystals_dilithium2_ref_PUBLICKEYBYTES;
     case strKey::STRKEY_PRE_AUTH_TX:
     case strKey::STRKEY_HASH_X:
         return 32U;
-    case strKey::STRKEY_SIGNED_PAYLOAD_ED25519:
-        return 96U; // 32 bytes for the key and 64 bytes for the payload
+    case strKey::STRKEY_SIGNED_PAYLOAD_DILITHIUM2:
+        return 1376U; // 1312 bytes for the key and 64 bytes for the payload
     default:
         throw std::invalid_argument("invalid key version: " +
                                     std::to_string(keyVersion));

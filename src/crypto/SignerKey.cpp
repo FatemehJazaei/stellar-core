@@ -25,13 +25,13 @@ KeyFunctions<SignerKey>::getKeyVersionIsSupported(
 {
     switch (keyVersion)
     {
-    case strKey::STRKEY_PUBKEY_ED25519:
+    case strKey::STRKEY_PUBKEY_DILITHIUM2:
         return true;
     case strKey::STRKEY_PRE_AUTH_TX:
         return true;
     case strKey::STRKEY_HASH_X:
         return true;
-    case strKey::STRKEY_SIGNED_PAYLOAD_ED25519:
+    case strKey::STRKEY_SIGNED_PAYLOAD_DILITHIUM2:
         return true;
     default:
         return false;
@@ -44,13 +44,13 @@ KeyFunctions<SignerKey>::getKeyVersionIsVariableLength(
 {
     switch (keyVersion)
     {
-    case strKey::STRKEY_PUBKEY_ED25519:
+    case strKey::STRKEY_PUBKEY_DILITHIUM2:
         return false;
     case strKey::STRKEY_PRE_AUTH_TX:
         return false;
     case strKey::STRKEY_HASH_X:
         return false;
-    case strKey::STRKEY_SIGNED_PAYLOAD_ED25519:
+    case strKey::STRKEY_SIGNED_PAYLOAD_DILITHIUM2:
         return true;
     default:
         throw std::invalid_argument("invalid signer key type");
@@ -62,14 +62,14 @@ KeyFunctions<SignerKey>::toKeyType(strKey::StrKeyVersionByte keyVersion)
 {
     switch (keyVersion)
     {
-    case strKey::STRKEY_PUBKEY_ED25519:
-        return SignerKeyType::SIGNER_KEY_TYPE_ED25519;
+    case strKey::STRKEY_PUBKEY_DILITHIUM2:
+        return SignerKeyType::SIGNER_KEY_TYPE_DILITHIUM2;
     case strKey::STRKEY_PRE_AUTH_TX:
         return SignerKeyType::SIGNER_KEY_TYPE_PRE_AUTH_TX;
     case strKey::STRKEY_HASH_X:
         return SignerKeyType::SIGNER_KEY_TYPE_HASH_X;
-    case strKey::STRKEY_SIGNED_PAYLOAD_ED25519:
-        return SignerKeyType::SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD;
+    case strKey::STRKEY_SIGNED_PAYLOAD_DILITHIUM2:
+        return SignerKeyType::SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD;
     default:
         throw std::invalid_argument("invalid signer key type");
     }
@@ -80,38 +80,38 @@ KeyFunctions<SignerKey>::toKeyVersion(SignerKeyType keyType)
 {
     switch (keyType)
     {
-    case SignerKeyType::SIGNER_KEY_TYPE_ED25519:
-        return strKey::STRKEY_PUBKEY_ED25519;
+    case SignerKeyType::SIGNER_KEY_TYPE_DILITHIUM2:
+        return strKey::STRKEY_PUBKEY_DILITHIUM2;
     case SignerKeyType::SIGNER_KEY_TYPE_PRE_AUTH_TX:
         return strKey::STRKEY_PRE_AUTH_TX;
     case SignerKeyType::SIGNER_KEY_TYPE_HASH_X:
         return strKey::STRKEY_HASH_X;
-    case SignerKeyType::SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD:
-        return strKey::STRKEY_SIGNED_PAYLOAD_ED25519;
+    case SignerKeyType::SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD:
+        return strKey::STRKEY_SIGNED_PAYLOAD_DILITHIUM2;
     default:
         throw std::invalid_argument("invalid signer key type");
     }
 }
 
-uint256&
-KeyFunctions<SignerKey>::getEd25519Value(SignerKey& key)
+xdr::opaque_vec<1312>&
+KeyFunctions<SignerKey>::getDilithium2Value(SignerKey& key)
 {
     switch (key.type())
     {
-    case SIGNER_KEY_TYPE_ED25519:
-        return key.ed25519();
+    case SIGNER_KEY_TYPE_DILITHIUM2:
+        return key.dilithium2();
     default:
         throw std::invalid_argument("invalid signer key type");
     }
 }
 
-uint256 const&
-KeyFunctions<SignerKey>::getEd25519Value(SignerKey const& key)
+xdr::opaque_vec<1312> const&
+KeyFunctions<SignerKey>::getDilithium2Value(SignerKey const& key)
 {
     switch (key.type())
     {
-    case SIGNER_KEY_TYPE_ED25519:
-        return key.ed25519();
+    case SIGNER_KEY_TYPE_DILITHIUM2:
+        return key.dilithium2();
     default:
         throw std::invalid_argument("invalid signer key type");
     }
@@ -122,14 +122,14 @@ KeyFunctions<SignerKey>::getKeyValue(SignerKey const& key)
 {
     switch (key.type())
     {
-    case SIGNER_KEY_TYPE_ED25519:
-        return xdr::xdr_to_opaque(key.ed25519());
+    case SIGNER_KEY_TYPE_DILITHIUM2:
+        return xdr::xdr_to_opaque(key.dilithium2());
     case SIGNER_KEY_TYPE_PRE_AUTH_TX:
         return xdr::xdr_to_opaque(key.preAuthTx());
     case SIGNER_KEY_TYPE_HASH_X:
         return xdr::xdr_to_opaque(key.hashX());
-    case SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD:
-        return xdr::xdr_to_opaque(key.ed25519SignedPayload());
+    case SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD:
+        return xdr::xdr_to_opaque(key.dilithium2SignedPayload());
     default:
         throw std::invalid_argument("invalid signer key type");
     }
@@ -141,8 +141,8 @@ KeyFunctions<SignerKey>::setKeyValue(SignerKey& key,
 {
     switch (key.type())
     {
-    case SIGNER_KEY_TYPE_ED25519:
-        xdr::xdr_from_opaque(data, key.ed25519());
+    case SIGNER_KEY_TYPE_DILITHIUM2:
+        xdr::xdr_from_opaque(data, key.dilithium2());
         break;
     case SIGNER_KEY_TYPE_PRE_AUTH_TX:
         xdr::xdr_from_opaque(data, key.preAuthTx());
@@ -150,8 +150,8 @@ KeyFunctions<SignerKey>::setKeyValue(SignerKey& key,
     case SIGNER_KEY_TYPE_HASH_X:
         xdr::xdr_from_opaque(data, key.hashX());
         break;
-    case SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD:
-        xdr::xdr_from_opaque(data, key.ed25519SignedPayload());
+    case SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD:
+        xdr::xdr_from_opaque(data, key.dilithium2SignedPayload());
         break;
     default:
         throw std::invalid_argument("invalid signer key type");

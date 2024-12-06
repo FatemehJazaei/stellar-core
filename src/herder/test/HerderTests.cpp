@@ -692,8 +692,8 @@ TEST_CASE("txset with PreconditionsV2", "[herder][txset]")
     SECTION("extraSigners")
     {
         SignerKey rootSigner;
-        rootSigner.type(SIGNER_KEY_TYPE_ED25519);
-        rootSigner.ed25519() = root.getPublicKey().ed25519();
+        rootSigner.type(SIGNER_KEY_TYPE_DILITHIUM2);
+        rootSigner.dilithium2() = root.getPublicKey().dilithium2();
 
         PreconditionsV2 cond;
         cond.extraSigners.emplace_back(rootSigner);
@@ -720,8 +720,8 @@ TEST_CASE("txset with PreconditionsV2", "[herder][txset]")
         SECTION("two extra signers")
         {
             SignerKey a2Signer;
-            a2Signer.type(SIGNER_KEY_TYPE_ED25519);
-            a2Signer.ed25519() = a2.getPublicKey().ed25519();
+            a2Signer.type(SIGNER_KEY_TYPE_DILITHIUM2);
+            a2Signer.dilithium2() = a2.getPublicKey().dilithium2();
 
             cond.extraSigners.emplace_back(a2Signer);
             auto tx = transactionWithV2Precondition(*app, a1, 1, 100, cond);
@@ -2169,7 +2169,7 @@ testSCPDriver(uint32 protocolVersion, uint32_t maxTxSetSize, size_t expectedOps)
                     }
                     SECTION("wrong signature 2")
                     {
-                        sv.ext.lcValueSignature().nodeID.ed25519()[0] ^= 1;
+                        sv.ext.lcValueSignature().nodeID.dilithium2()[0] ^= 1;
                         checkInvalid(sv, isNomination);
                     }
                 }

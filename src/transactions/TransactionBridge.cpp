@@ -31,7 +31,7 @@ convertForV13(TransactionEnvelope const& input)
     auto& txV1 = envV1.tx;
 
     envV1.signatures = envV0.signatures;
-    txV1.sourceAccount.ed25519() = txV0.sourceAccountEd25519;
+    txV1.sourceAccount.dilithium2() = txV0.sourceAccountDilithium2;
     txV1.fee = txV0.fee;
     txV1.seqNum = txV0.seqNum;
     txV1.memo = txV0.memo;

@@ -67,6 +67,7 @@ listall() {
  echo TRACY_CXX_FILES = tracy/public/TracyClient.cpp
  echo JSON_FILES = $(listall json)
  echo SPDLOG_FILES = spdlog.cpp
+ echo DILITHIUM_FILES = $(listall dilithium)
 
  echo MISC_H_FILES = *.hpp $(listall autocheck cereal fmt)
 ) > lib/lib.mk

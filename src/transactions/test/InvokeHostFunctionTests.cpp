@@ -2941,13 +2941,13 @@ TEST_CASE("settings upgrade command line utils", "[tx][soroban][upgrades]")
                     params[val] =
                         ContractCostParamEntry{ExtensionPoint{0}, 3636, 7013};
                     break;
-                case ComputeEd25519PubKey:
+                case ComputeDilithium2PubKey:
                     params[val] =
-                        ContractCostParamEntry{ExtensionPoint{0}, 40256, 0};
+                        ContractCostParamEntry{ExtensionPoint{0}, 80000, 0};
                     break;
-                case VerifyEd25519Sig:
+                case VerifyDilithium2Sig:
                     params[val] =
-                        ContractCostParamEntry{ExtensionPoint{0}, 377551, 4059};
+                        ContractCostParamEntry{ExtensionPoint{0}, 700000, 8000};
                     break;
                 case VmInstantiation:
                     params[val] = ContractCostParamEntry{ExtensionPoint{0},
@@ -3046,11 +3046,11 @@ TEST_CASE("settings upgrade command line utils", "[tx][soroban][upgrades]")
                     params[val] =
                         ContractCostParamEntry{ExtensionPoint{0}, 0, 0};
                     break;
-                case ComputeEd25519PubKey:
+                case ComputeDilithium2PubKey:
                     params[val] =
                         ContractCostParamEntry{ExtensionPoint{0}, 0, 0};
                     break;
-                case VerifyEd25519Sig:
+                case VerifyDilithium2Sig:
                     params[val] =
                         ContractCostParamEntry{ExtensionPoint{0}, 0, 0};
                     break;
@@ -3796,12 +3796,13 @@ TEST_CASE("Soroban custom account authentication", "[tx][soroban]")
         };
 
     auto accountSecretKey = SecretKey::pseudoRandomForTesting();
-    REQUIRE(accountContract
-                .prepareInvocation(
-                    "init",
-                    {makeBytesSCVal(accountSecretKey.getPublicKey().ed25519())},
-                    accountInvocationSpec)
-                .invoke());
+    REQUIRE(
+        accountContract
+            .prepareInvocation(
+                "init",
+                {makeBytesSCVal(accountSecretKey.getPublicKey().dilithium2())},
+                accountInvocationSpec)
+            .invoke());
     auto signWithKey = [&](SecretKey const& key, uint256 payload) {
         return makeBytesSCVal(key.sign(payload));
     };
@@ -3856,7 +3857,7 @@ TEST_CASE("Soroban custom account authentication", "[tx][soroban]")
                      .prepareInvocation(
                          "set_owner",
                          {makeBytesSCVal(
-                             newAccountSecretKey.getPublicKey().ed25519())},
+                             newAccountSecretKey.getPublicKey().dilithium2())},
                          accountInvocationSpec)
                      .withAuthorizedTopCall(newSigner)
                      .withDeduplicatedFootprint()
@@ -3865,7 +3866,7 @@ TEST_CASE("Soroban custom account authentication", "[tx][soroban]")
                     .prepareInvocation(
                         "set_owner",
                         {makeBytesSCVal(
-                            newAccountSecretKey.getPublicKey().ed25519())},
+                            newAccountSecretKey.getPublicKey().dilithium2())},
                         accountInvocationSpec)
                     .withAuthorizedTopCall(signer)
                     .withDeduplicatedFootprint()
@@ -3901,12 +3902,13 @@ TEST_CASE("Soroban authorization", "[tx][soroban]")
     auto accountInvocationSpec =
         defaultSpec.extendReadWriteFootprint({ownerKey});
     auto accountSecretKey = SecretKey::pseudoRandomForTesting();
-    REQUIRE(accountContract
-                .prepareInvocation(
-                    "init",
-                    {makeBytesSCVal(accountSecretKey.getPublicKey().ed25519())},
-                    accountInvocationSpec)
-                .invoke());
+    REQUIRE(
+        accountContract
+            .prepareInvocation(
+                "init",
+                {makeBytesSCVal(accountSecretKey.getPublicKey().dilithium2())},
+                accountInvocationSpec)
+            .invoke());
 
     auto authContractSpec = accountInvocationSpec;
     for (int i = 0; i < 4; ++i)

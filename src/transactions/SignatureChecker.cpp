@@ -112,7 +112,7 @@ SignatureChecker::checkSignature(std::vector<Signer> const& signersV,
     }
 
     verified = verifyAll(
-        signers[SIGNER_KEY_TYPE_ED25519],
+        signers[SIGNER_KEY_TYPE_DILITHIUM2],
         [&](DecoratedSignature const& sig, Signer const& signerKey) {
             return SignatureUtils::verify(sig, signerKey.key, mContentsHash);
         });
@@ -122,9 +122,9 @@ SignatureChecker::checkSignature(std::vector<Signer> const& signersV,
     }
 
     verified =
-        verifyAll(signers[SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD],
+        verifyAll(signers[SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD],
                   [&](DecoratedSignature const& sig, Signer const& signerKey) {
-                      return SignatureUtils::verifyEd25519SignedPayload(
+                      return SignatureUtils::verifyDilithium2SignedPayload(
                           sig, signerKey.key);
                   });
     if (verified)

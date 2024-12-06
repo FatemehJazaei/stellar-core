@@ -1224,11 +1224,11 @@ toAccountID(MuxedAccount const& m)
     AccountID ret(static_cast<PublicKeyType>(m.type() & 0xff));
     switch (m.type())
     {
-    case KEY_TYPE_ED25519:
-        ret.ed25519() = m.ed25519();
+    case KEY_TYPE_DILITHIUM2:
+        ret.dilithium2() = m.dilithium2();
         break;
-    case KEY_TYPE_MUXED_ED25519:
-        ret.ed25519() = m.med25519().ed25519;
+    case KEY_TYPE_MUXED_DILITHIUM2:
+        ret.dilithium2() = m.mdilithium2().dilithium2;
         break;
     default:
         // this would be a bug
@@ -1243,8 +1243,8 @@ toMuxedAccount(AccountID const& a)
     MuxedAccount ret(static_cast<CryptoKeyType>(a.type()));
     switch (a.type())
     {
-    case PUBLIC_KEY_TYPE_ED25519:
-        ret.ed25519() = a.ed25519();
+    case PUBLIC_KEY_TYPE_DILITHIUM2:
+        ret.dilithium2() = a.dilithium2();
         break;
     default:
         // this would be a bug
@@ -1645,8 +1645,7 @@ removeOffersAndPoolShareTrustLines(AbstractLedgerTxn& ltx,
         auto pool = loadLiquidityPool(ltxInner, poolID);
         // use a lambda so we don't hold a reference to the
         // LiquidityPoolEntry
-        auto constantProduct = [&]() -> auto&
-        {
+        auto constantProduct = [&]() -> auto& {
             return pool.current().data.liquidityPool().body.constantProduct();
         };
 
@@ -1947,7 +1946,7 @@ struct MuxChecker
     operator()(stellar::MuxedAccount const& t)
     {
         // checks if this is a multiplexed account,
-        // such as KEY_TYPE_MUXED_ED25519
+        // such as KEY_TYPE_MUXED_DILITHIUM2
         if ((t.type() & 0x100) != 0)
         {
             mHasMuxedAccount = true;
@@ -2013,7 +2012,7 @@ makeClaimAtom(uint32_t ledgerVersion, AccountID const& accountID,
     if (protocolVersionIsBefore(ledgerVersion, ProtocolVersion::V_18))
     {
         atom.type(CLAIM_ATOM_TYPE_V0);
-        atom.v0() = ClaimOfferAtomV0(accountID.ed25519(), offerID, wheat,
+        atom.v0() = ClaimOfferAtomV0(accountID.dilithium2(), offerID, wheat,
                                      numWheatReceived, sheep, numSheepSend);
     }
     else

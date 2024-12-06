@@ -1,9 +1,8 @@
 // Copyright 2015 Stellar Development Foundation and contributors. Licensed
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
-
-#include "crypto/Curve25519.h"
 #include "crypto/CryptoError.h"
+#include "crypto/Dilithium2.h"
 #include "crypto/SHA.h"
 #include "util/HashOfHash.h"
 #include <Tracy.hpp>
@@ -13,13 +12,17 @@
 #include <sanitizer/msan_interface.h>
 #endif
 
+{
+#include "dilithium.h"
+}
+
 namespace stellar
 {
 
-Curve25519Secret
-curve25519RandomSecret()
+Dilithium2Secret
+dilithium2RandomSecret()
 {
-    Curve25519Secret out;
+    Dilithium2Secret out;
     randombytes_buf(out.key.data(), out.key.size());
 #ifdef MSAN_ENABLED
     __msan_unpoison(out.key.data(), out.key.size());
@@ -27,12 +30,14 @@ curve25519RandomSecret()
     return out;
 }
 
-Curve25519Public
-curve25519DerivePublic(Curve25519Secret const& sec)
+Dilithium2Public
+dilithium2DerivePublic(Dilithium2Secret const& sec)
 {
     ZoneScoped;
-    Curve25519Public out;
-    if (crypto_scalarmult_base(out.key.data(), sec.key.data()) != 0)
+    Dilithium2Public out;
+    uint8_t secretKey[pqcrystals_dilithium2_ref_SECRETKEYBYTES];
+    if (pqcrystals_dilithium2_ref_seed(out.key.data(), secretKey,
+                                       sec.key.data()) != 0)
     {
         throw CryptoError("Could not derive key (mult_base)");
     }
@@ -40,17 +45,17 @@ curve25519DerivePublic(Curve25519Secret const& sec)
 }
 
 void
-clearCurve25519Keys(Curve25519Public& localPublic,
-                    Curve25519Secret& localSecret)
+clearDilithium2Keys(Dilithium2Public& localPublic,
+                    Dilithium2Secret& localSecret)
 {
     sodium_memzero(localPublic.key.data(), localPublic.key.size());
     sodium_memzero(localSecret.key.data(), localSecret.key.size());
 }
 
 HmacSha256Key
-curve25519DeriveSharedKey(Curve25519Secret const& localSecret,
-                          Curve25519Public const& localPublic,
-                          Curve25519Public const& remotePublic, bool localFirst)
+dilithium2DeriveSharedKey(Dilithium2Secret const& localSecret,
+                          Dilithium2Public const& localPublic,
+                          Dilithium2Public const& remotePublic, bool localFirst)
 {
     ZoneScoped;
     auto const& publicA = localFirst ? localPublic : remotePublic;
@@ -75,8 +80,8 @@ curve25519DeriveSharedKey(Curve25519Secret const& localSecret,
 }
 
 xdr::opaque_vec<>
-curve25519Decrypt(Curve25519Secret const& localSecret,
-                  Curve25519Public const& localPublic,
+dilithium2Decrypt(Dilithium2Secret const& localSecret,
+                  Dilithium2Public const& localPublic,
                   ByteSlice const& encrypted)
 {
     ZoneScoped;
@@ -93,7 +98,7 @@ curve25519Decrypt(Curve25519Secret const& localSecret,
                              encrypted.size(), localPublic.key.data(),
                              localSecret.key.data()) != 0)
     {
-        throw CryptoError("curve25519Decrypt failed");
+        throw CryptoError("dilithium2Decrypt failed");
     }
 
     return decrypted;
@@ -103,9 +108,9 @@ curve25519Decrypt(Curve25519Secret const& localSecret,
 namespace std
 {
 size_t
-hash<stellar::Curve25519Public>::operator()(
-    stellar::Curve25519Public const& k) const noexcept
+hash<stellar::Dilithium2Public>::operator()(
+    stellar::Dilithium2Public const& k) const noexcept
 {
-    return std::hash<stellar::uint256>()(k.key);
+    return std::hash<xdr::opaque_vec<1312>>()(k.key);
 }
 }

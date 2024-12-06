@@ -308,14 +308,15 @@ validateSorobanMemo(TransactionFrameBasePtr tx)
 
     // If tx has a memo or the source account is muxed
     if (txEnv.tx.memo.type() != MemoType::MEMO_NONE ||
-        txEnv.tx.sourceAccount.type() == CryptoKeyType::KEY_TYPE_MUXED_ED25519)
+        txEnv.tx.sourceAccount.type() ==
+            CryptoKeyType::KEY_TYPE_MUXED_DILITHIUM2)
     {
         return false;
     }
 
     // If op source account is muxed
     if (op.sourceAccount &&
-        op.sourceAccount->type() == CryptoKeyType::KEY_TYPE_MUXED_ED25519)
+        op.sourceAccount->type() == CryptoKeyType::KEY_TYPE_MUXED_DILITHIUM2)
     {
         return false;
     }

@@ -11,7 +11,10 @@
 #include <array>
 #include <functional>
 #include <ostream>
-
+extern "C"
+{
+#include "dilithium.h"
+}
 namespace stellar
 {
 
@@ -21,9 +24,9 @@ struct SignerKey;
 
 class SecretKey
 {
-    using uint512 = xdr::opaque_array<64>;
+
     PublicKeyType mKeyType;
-    uint512 mSecretKey;
+    xdr::opaque_vec<2560> mSecretKey;
     PublicKey mPublicKey;
 
     struct Seed
@@ -125,8 +128,9 @@ template <> struct KeyFunctions<PublicKey>
     getKeyVersionIsVariableLength(strKey::StrKeyVersionByte keyVersion);
     static PublicKeyType toKeyType(strKey::StrKeyVersionByte keyVersion);
     static strKey::StrKeyVersionByte toKeyVersion(PublicKeyType keyType);
-    static uint256& getEd25519Value(PublicKey& key);
-    static uint256 const& getEd25519Value(PublicKey const& key);
+    static xdr::opaque_vec<1312>& getDilithium2Value(PublicKey& key);
+    static xdr::opaque_vec<1312> const&
+    getDilithium2Value(PublicKey const& key);
 
     static std::vector<uint8_t> getKeyValue(PublicKey const& key);
     static void setKeyValue(PublicKey& key, std::vector<uint8_t> const& data);

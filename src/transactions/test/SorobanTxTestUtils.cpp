@@ -36,7 +36,7 @@ signPayloadForClassicAccount(std::vector<TestAccount*> const& signers,
         SCVal signatureVal(SCV_MAP);
         signatureVal.map().activate().emplace_back(
             makeSymbolSCVal("public_key"),
-            makeBytesSCVal(account->getPublicKey().ed25519()));
+            makeBytesSCVal(account->getPublicKey().dilithium2()));
         auto signature = account->getSecretKey().sign(payload);
         signatureVal.map().activate().emplace_back(makeSymbolSCVal("signature"),
                                                    makeBytesSCVal(signature));
@@ -153,8 +153,8 @@ makeContractIDPreimage(TestAccount& source, uint256 salt)
 {
     ContractIDPreimage idPreimage(CONTRACT_ID_PREIMAGE_FROM_ADDRESS);
     idPreimage.fromAddress().address.type(SC_ADDRESS_TYPE_ACCOUNT);
-    idPreimage.fromAddress().address.accountId().ed25519() =
-        source.getPublicKey().ed25519();
+    idPreimage.fromAddress().address.accountId().dilithium2() =
+        source.getPublicKey().dilithium2();
     idPreimage.fromAddress().salt = salt;
     return idPreimage;
 }
@@ -1206,8 +1206,8 @@ SorobanTest::createClassicAccountSigner(TestAccount const& account,
     accountKeys.push_back(accountKey);
     for (const auto& signer : signers)
     {
-        if (signer->getPublicKey().ed25519() !=
-            account.getPublicKey().ed25519())
+        if (signer->getPublicKey().dilithium2() !=
+            account.getPublicKey().dilithium2())
         {
             LedgerKey signerKey(LedgerEntryType::ACCOUNT);
             signerKey.account().accountID = signer->getPublicKey();

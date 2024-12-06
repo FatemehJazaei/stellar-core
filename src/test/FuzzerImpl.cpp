@@ -903,7 +903,7 @@ class FuzzTransactionFrame : public TransactionFrame
     FuzzTransactionFrame(Hash const& networkID,
                          TransactionEnvelope const& envelope)
         : TransactionFrame(networkID, envelope)
-        , mTxResult(createSuccessResult()){};
+        , mTxResult(createSuccessResult()) {};
 
     void
     attemptApplication(Application& app, AbstractLedgerTxn& ltx)

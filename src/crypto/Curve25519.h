@@ -11,30 +11,34 @@
 #include <functional>
 #include <sodium.h>
 
+{
+#include "dilithium.h"
+}
+
 namespace stellar
 {
-// This module contains functions for doing ECDH on Curve25519. Despite the
-// equivalence between this curve and Ed25519 (used in signatures, see
-// SecretKey.h) we use Curve25519 keys _only_ for ECDH shared-key-agreement
+// This module contains functions for doing ECDH on Dilithium2. Despite the
+// equivalence between this curve and Dilithium2 (used in signatures, see
+// SecretKey.h) we use Dilithium2 keys _only_ for ECDH shared-key-agreement
 // between peers, as part of the p2p overlay system (see
 // overlay/PeerAuth.h), not the transaction-signing or SCP-message-signing
-// systems. Signatures use Ed25519 keys.
+// systems. Signatures use Dilithium2 keys.
 //
 // Do not mix keys between these subsystems: i.e. do not convert a signing
-// Ed25519 key to an ECDH Curve25519 key. It's possible to do but
+// Dilithium2 key to an ECDH Dilithium2 key. It's possible to do but
 // complicates, and potentially undermines, the security analysis of each.
-// We prefer to use random-per-session Curve25519 keys, and merely sign
-// them with the long-lived Ed25519 keys during p2p handshake.
+// We prefer to use random-per-session Dilithium2 keys, and merely sign
+// them with the long-lived Dilithium2 keys during p2p handshake.
 
 // Read a scalar from /dev/urandom.
-Curve25519Secret curve25519RandomSecret();
+Dilithium2Secret dilithium2RandomSecret();
 
-// Calculate a public Curve25519 point from a private scalar.
-Curve25519Public curve25519DerivePublic(Curve25519Secret const& sec);
+// Calculate a public Dilithium2 point from a private scalar.
+Dilithium2Public dilithium2DerivePublic(Dilithium2Secret const& sec);
 
 // clears the keys by running sodium_memzero
-void clearCurve25519Keys(Curve25519Public& localPublic,
-                         Curve25519Secret& localSecret);
+void clearDilithium2Keys(Dilithium2Public& localPublic,
+                         Dilithium2Secret& localSecret);
 
 // Calculate HKDF_extract(localSecret * remotePublic || publicA || publicB)
 //
@@ -42,18 +46,18 @@ void clearCurve25519Keys(Curve25519Public& localPublic,
 //   publicA = localFirst ? localPublic : remotePublic
 //   publicB = localFirst ? remotePublic : localPublic
 
-HmacSha256Key curve25519DeriveSharedKey(Curve25519Secret const& localSecret,
-                                        Curve25519Public const& localPublic,
-                                        Curve25519Public const& remotePublic,
+HmacSha256Key dilithium2DeriveSharedKey(Dilithium2Secret const& localSecret,
+                                        Dilithium2Public const& localPublic,
+                                        Dilithium2Public const& remotePublic,
                                         bool localFirst);
 
-xdr::opaque_vec<> curve25519Decrypt(Curve25519Secret const& localSecret,
-                                    Curve25519Public const& localPublic,
+xdr::opaque_vec<> dilithium2Decrypt(Dilithium2Secret const& localSecret,
+                                    Dilithium2Public const& localPublic,
                                     ByteSlice const& encrypted);
 
 template <uint32_t N>
 xdr::opaque_vec<N>
-curve25519Encrypt(Curve25519Public const& remotePublic, ByteSlice const& bin)
+dilithium2Encrypt(Dilithium2Public const& remotePublic, ByteSlice const& bin)
 {
     const uint64_t CIPHERTEXT_LEN = crypto_box_SEALBYTES + bin.size();
     if (CIPHERTEXT_LEN > N)
@@ -68,7 +72,7 @@ curve25519Encrypt(Curve25519Public const& remotePublic, ByteSlice const& bin)
     if (crypto_box_seal(ciphertext.data(), bin.data(), bin.size(),
                         remotePublic.key.data()) != 0)
     {
-        throw std::runtime_error("curve25519Encrypt failed");
+        throw std::runtime_error("dilithium2Encrypt failed");
     }
 
     return ciphertext;
@@ -77,8 +81,8 @@ curve25519Encrypt(Curve25519Public const& remotePublic, ByteSlice const& bin)
 
 namespace std
 {
-template <> struct hash<stellar::Curve25519Public>
+template <> struct hash<stellar::Dilithium2Public>
 {
-    size_t operator()(stellar::Curve25519Public const& x) const noexcept;
+    size_t operator()(stellar::Dilithium2Public const& x) const noexcept;
 };
 }
