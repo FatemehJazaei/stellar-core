@@ -1,7 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
 AUTOMAKE_OPTIONS = serial-tests
-bin_PROGRAMS = keyhan-core
+bin_PROGRAMS = stellar-core
 
 include $(top_srcdir)/common.mk
 include $(srcdir)/src.mk
