@@ -6,7 +6,7 @@
 # of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
 AC_PREREQ([2.68])
-AC_INIT([keyhan-core],[0.1],[],[],[])
+AC_INIT([stellar-core],[0.1],[],[],[http://www.stellar.org])
 # tar-ustar is required for long file names when libsodium is bundled
 AM_INIT_AUTOMAKE([-Wall -Wextra -Wconversion subdir-objects tar-ustar silent-rules])
 AC_CONFIG_SRCDIR([configure.ac])

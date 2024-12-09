@@ -15,6 +15,7 @@
                                          "lib/sqlite"
                                          "lib/libsodium/src/libsodium"
                                          "lib/libmedida/src"
+                                         "lib/dilithium"
                                          ))
          (whitespace-style . (face tabs tab-mark trailing lines-tail empty))
          (c-file-style . "stroustrup")
