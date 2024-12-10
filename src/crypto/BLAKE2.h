@@ -8,6 +8,9 @@
 #include "crypto/XDRHasher.h"
 #include "sodium/crypto_generichash.h"
 #include "xdr/Stellar-types.h"
+#include <array>
+#include <cstring>
+#include <functional>
 #include <memory>
 
 namespace stellar
@@ -55,4 +58,13 @@ xdrBlake2(T const& t)
     xb.flush();
     return xb.state.finish();
 }
+}
+
+namespace std
+{
+template <> struct hash<xdr::opaque_vec<1312>>
+{
+    std::array<unsigned char, 32>
+    operator()(const xdr::opaque_vec<1312>& vec) const;
+};
 }

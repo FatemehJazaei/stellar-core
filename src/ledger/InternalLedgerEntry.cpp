@@ -3,6 +3,7 @@
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
 #include "ledger/InternalLedgerEntry.h"
+#include "crypto/BLAKE2.h"
 #include "ledger/LedgerHashUtils.h"
 #include "util/GlobalChecks.h"
 #include "util/HashOfHash.h"

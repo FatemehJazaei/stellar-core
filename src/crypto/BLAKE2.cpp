@@ -7,7 +7,9 @@
 #include "crypto/CryptoError.h"
 #include "util/NonCopyable.h"
 #include <Tracy.hpp>
+#include <array>
 #include <sodium.h>
+#include <xdrpp/types.h>
 
 namespace stellar
 {
@@ -72,4 +74,22 @@ BLAKE2::finish()
     }
     return out;
 }
+}
+namespace std
+{
+template <> struct hash<xdr::opaque_vec<1312>>
+{
+    std::array<unsigned char, 32>
+    operator()(const xdr::opaque_vec<1312>& vec) const
+    {
+        std::array<unsigned char, 32> hashResult;
+
+        stellar::ByteSlice input(vec.data(), vec.size());
+        auto blakeHash = stellar::blake2(input);
+
+        std::memcpy(hashResult.data(), blakeHash.data(), hashResult.size());
+
+        return hashResult;
+    }
+};
 }
