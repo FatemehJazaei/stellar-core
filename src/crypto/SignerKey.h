@@ -24,8 +24,8 @@ template <> struct KeyFunctions<SignerKey>
     getKeyVersionIsVariableLength(strKey::StrKeyVersionByte keyVersion);
     static SignerKeyType toKeyType(strKey::StrKeyVersionByte keyVersion);
     static strKey::StrKeyVersionByte toKeyVersion(SignerKeyType keyType);
-    static xdr::opaque_vec<1312>& getDilithium2Value(SignerKey& key);
-    static xdr::opaque_vec<1312> const&
+    static xdr::opaque_array<1312>& getDilithium2Value(SignerKey& key);
+    static xdr::opaque_array<1312> const&
     getDilithium2Value(SignerKey const& key);
 
     static std::vector<uint8_t> getKeyValue(SignerKey const& key);

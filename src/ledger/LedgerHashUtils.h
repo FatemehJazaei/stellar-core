@@ -52,7 +52,7 @@ getAssetHash(T const& asset)
     {
         auto& a4 = asset.alphaNum4();
         hashMix(res,
-                std::hash<xdr::opaque_vec<1312>>()(a4.issuer.dilithium2()));
+                std::hash<xdr::opaque_array<1312>>()(a4.issuer.dilithium2()));
         hashMix(res, stellar::shortHash::computeHash(stellar::ByteSlice(
                          a4.assetCode.data(), a4.assetCode.size())));
         break;
@@ -61,15 +61,15 @@ getAssetHash(T const& asset)
     {
         auto& a12 = asset.alphaNum12();
         hashMix(res,
-                std::hash<xdr::opaque_vec<1312>>()(a12.issuer.dilithium2()));
+                std::hash<xdr::opaque_array<1312>>()(a12.issuer.dilithium2()));
         hashMix(res, stellar::shortHash::computeHash(stellar::ByteSlice(
                          a12.assetCode.data(), a12.assetCode.size())));
         break;
     }
     case stellar::ASSET_TYPE_POOL_SHARE:
     {
-        hashMix(res,
-                std::hash<xdr::opaque_vec<1312>>()(getLiquidityPoolID(asset)));
+        hashMix(res, std::hash<xdr::opaque_array<1312>>()(
+                         getLiquidityPoolID(asset)));
         break;
     }
     default:
@@ -113,19 +113,19 @@ template <> class hash<stellar::LedgerKey>
         switch (lk.type())
         {
         case stellar::ACCOUNT:
-            stellar::hashMix(res, std::hash<xdr::opaque_vec<1312>>()(
+            stellar::hashMix(res, std::hash<xdr::opaque_array<1312>>()(
                                       lk.account().accountID.dilithium2()));
             break;
         case stellar::TRUSTLINE:
         {
             auto& tl = lk.trustLine();
-            stellar::hashMix(res, std::hash<xdr::opaque_vec<1312>>()(
+            stellar::hashMix(res, std::hash<xdr::opaque_array<1312>>()(
                                       tl.accountID.dilithium2()));
             stellar::hashMix(res, hash<stellar::TrustLineAsset>()(tl.asset));
             break;
         }
         case stellar::DATA:
-            stellar::hashMix(res, std::hash<xdr::opaque_vec<1312>>()(
+            stellar::hashMix(res, std::hash<xdr::opaque_array<1312>>()(
                                       lk.data().accountID.dilithium2()));
             stellar::hashMix(
                 res,
@@ -151,7 +151,7 @@ template <> class hash<stellar::LedgerKey>
             case stellar::SC_ADDRESS_TYPE_ACCOUNT:
                 stellar::hashMix(
                     res,
-                    std::hash<xdr::opaque_vec<1312>>()(
+                    std::hash<xdr::opaque_array<1312>>()(
                         lk.contractData().contract.accountId().dilithium2()));
                 break;
             case stellar::SC_ADDRESS_TYPE_CONTRACT:

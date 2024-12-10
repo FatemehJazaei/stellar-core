@@ -203,15 +203,15 @@ InternalLedgerKey::hash() const
         res = std::hash<stellar::LedgerKey>()(ledgerKey());
         break;
     case stellar::InternalLedgerEntryType::SPONSORSHIP:
-        res = std::hash<xdr::opaque_vec<1312>>()(
+        res = std::hash<xdr::opaque_array<1312>>()(
             sponsorshipKey().sponsoredID.dilithium2());
         break;
     case stellar::InternalLedgerEntryType::SPONSORSHIP_COUNTER:
-        res = std::hash<xdr::opaque_vec<1312>>()(
+        res = std::hash<xdr::opaque_array<1312>>()(
             sponsorshipCounterKey().sponsoringID.dilithium2());
         break;
     case stellar::InternalLedgerEntryType::MAX_SEQ_NUM_TO_APPLY:
-        res = std::hash<xdr::opaque_vec<1312>>()(
+        res = std::hash<xdr::opaque_array<1312>>()(
             maxSeqNumToApplyKey().sourceAccount.dilithium2());
         break;
     default:

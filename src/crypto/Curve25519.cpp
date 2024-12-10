@@ -112,6 +112,6 @@ size_t
 hash<stellar::Dilithium2Public>::operator()(
     stellar::Dilithium2Public const& k) const noexcept
 {
-    return std::hash<xdr::opaque_vec<1312>>()(k.key);
+    return std::hash<xdr::opaque_array<1312>>()(k.key);
 }
 }

@@ -60,11 +60,7 @@ xdrBlake2(T const& t)
 }
 }
 
-namespace std
-{
-template <> struct hash<xdr::opaque_vec<1312>>
-{
-    std::array<unsigned char, 32>
-    operator()(const xdr::opaque_vec<1312>& vec) const;
-};
+namespace std {
+    template <>
+    struct hash<xdr::opaque_array<1312>>; 
 }

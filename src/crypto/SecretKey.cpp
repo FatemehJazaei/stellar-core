@@ -68,14 +68,15 @@ verifySigCacheKey(PublicKey const& key, Signature const& signature,
 SecretKey::SecretKey() : mKeyType(PUBLIC_KEY_TYPE_DILITHIUM2)
 {
     static_assert(pqcrystals_dilithium2_ref_PUBLICKEYBYTES ==
-                      sizeof(xdr::opaque_vec<1312>),
+                      sizeof(xdr::opaque_array<1312>),
                   "Unexpected public key length");
     static_assert(pqcrystals_dilithium2_ref_SEEDBYTES == sizeof(uint256),
                   "Unexpected seed length");
     static_assert(pqcrystals_dilithium2_ref_SECRETKEYBYTES ==
                       sizeof(xdr::opaque_vec<2560>),
                   "Unexpected secret key length");
-    static_assert(pqcrystals_dilithium2_ref_BYTES == sizeof(xdr::opaque_vec<2420>),
+    static_assert(pqcrystals_dilithium2_ref_BYTES ==
+                      sizeof(xdr::opaque_vec<2420>),
                   "Unexpected signature length");
 }
 
@@ -418,7 +419,7 @@ KeyFunctions<PublicKey>::toKeyVersion(PublicKeyType keyType)
     }
 }
 
-xdr::opaque_vec<1312>&
+xdr::opaque_array<1312>&
 KeyFunctions<PublicKey>::getDilithium2Value(PublicKey& key)
 {
     switch (key.type())
@@ -430,7 +431,7 @@ KeyFunctions<PublicKey>::getDilithium2Value(PublicKey& key)
     }
 }
 
-xdr::opaque_vec<1312> const&
+xdr::opaque_array<1312> const&
 KeyFunctions<PublicKey>::getDilithium2Value(PublicKey const& key)
 {
     switch (key.type())
@@ -673,6 +674,6 @@ hash<stellar::PublicKey>::operator()(stellar::PublicKey const& k) const noexcept
     using namespace stellar;
     releaseAssert(k.type() == stellar::PUBLIC_KEY_TYPE_DILITHIUM2);
 
-    return std::hash<xdr::opaque_vec<1312>>()(k.dilithium2());
+    return std::hash<xdr::opaque_array<1312>>()(k.dilithium2());
 }
 }

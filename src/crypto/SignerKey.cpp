@@ -93,7 +93,7 @@ KeyFunctions<SignerKey>::toKeyVersion(SignerKeyType keyType)
     }
 }
 
-xdr::opaque_vec<1312>&
+xdr::opaque_array<1312>&
 KeyFunctions<SignerKey>::getDilithium2Value(SignerKey& key)
 {
     switch (key.type())
@@ -105,7 +105,7 @@ KeyFunctions<SignerKey>::getDilithium2Value(SignerKey& key)
     }
 }
 
-xdr::opaque_vec<1312> const&
+xdr::opaque_array<1312> const&
 KeyFunctions<SignerKey>::getDilithium2Value(SignerKey const& key)
 {
     switch (key.type())

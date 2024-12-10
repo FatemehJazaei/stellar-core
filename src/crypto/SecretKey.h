@@ -128,8 +128,8 @@ template <> struct KeyFunctions<PublicKey>
     getKeyVersionIsVariableLength(strKey::StrKeyVersionByte keyVersion);
     static PublicKeyType toKeyType(strKey::StrKeyVersionByte keyVersion);
     static strKey::StrKeyVersionByte toKeyVersion(PublicKeyType keyType);
-    static xdr::opaque_vec<1312>& getDilithium2Value(PublicKey& key);
-    static xdr::opaque_vec<1312> const&
+    static xdr::opaque_array<1312>& getDilithium2Value(PublicKey& key);
+    static xdr::opaque_array<1312> const&
     getDilithium2Value(PublicKey const& key);
 
     static std::vector<uint8_t> getKeyValue(PublicKey const& key);
