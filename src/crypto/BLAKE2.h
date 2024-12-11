@@ -59,8 +59,15 @@ xdrBlake2(T const& t)
     return xb.state.finish();
 }
 }
-
 namespace std {
     template <>
-    struct hash<xdr::opaque_array<1312>>; 
+    struct hash<xdr::opaque_array<1312>> {
+        size_t operator()(const xdr::opaque_array<1312>& arr) const {
+            stellar::ByteSlice input(arr.data(), arr.size());
+            auto blakeHash = stellar::blake2(input);
+            size_t result = 0;
+            std::memcpy(&result, blakeHash.data(), sizeof(size_t));
+            return result;
+        }
+    };
 }

@@ -79,14 +79,14 @@ namespace std
 {
 template <> struct hash<xdr::opaque_array<1312>>
 {
-    std::array<unsigned char, 32>
+    size_t
     operator()(const xdr::opaque_array<1312>& arr) const
     {
-        std::array<unsigned char, 32> hashResult;
         stellar::ByteSlice input(arr.data(), arr.size());
         auto blakeHash = stellar::blake2(input);
-        std::memcpy(hashResult.data(), blakeHash.data(), hashResult.size());
-        return hashResult;
+        size_t result = 0;
+        std::memcpy(&result, blakeHash.data(), sizeof(size_t));
+        return result;
     }
 };
 }
