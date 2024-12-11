@@ -68,8 +68,8 @@ getAssetHash(T const& asset)
     }
     case stellar::ASSET_TYPE_POOL_SHARE:
     {
-        hashMix(res, std::hash<xdr::opaque_array<1312>>()(
-                         getLiquidityPoolID(asset)));
+        hashMix(res,
+                std::hash<stellar::uint256>()(getLiquidityPoolID(asset)));
         break;
     }
     default:
