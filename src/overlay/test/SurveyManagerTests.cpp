@@ -137,9 +137,9 @@ TEST_CASE("topology encrypted response memory check",
 
     // Test that `body` is within memory limits by attempting to encrypt it
     auto doEncryptTest = [&](auto const& body) {
-        auto publicKey = curve25519DerivePublic(curve25519RandomSecret());
+        auto publicKey = dilithium2DerivePublic(dilithium2RandomSecret());
         // this will throw if EncryptedBody is too small
-        curve25519Encrypt<EncryptedBody::max_size()>(publicKey,
+        dilithium2Encrypt<EncryptedBody::max_size()>(publicKey,
                                                      xdr::xdr_to_opaque(body));
     };
 
@@ -324,8 +324,7 @@ TEST_CASE("topology survey", "[overlay][survey][topology]")
     }
     SECTION("A (surveyor) filters out unknown responses")
     {
-        auto getSM = [&](NodeID const& key) -> auto&
-        {
+        auto getSM = [&](NodeID const& key) -> auto& {
             return simulation->getNode(key)
                 ->getOverlayManager()
                 .getSurveyManager();

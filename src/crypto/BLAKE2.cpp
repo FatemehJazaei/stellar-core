@@ -75,18 +75,3 @@ BLAKE2::finish()
     return out;
 }
 }
-namespace std
-{
-template <> struct hash<xdr::opaque_array<1312>>
-{
-    size_t
-    operator()(const xdr::opaque_array<1312>& arr) const
-    {
-        stellar::ByteSlice input(arr.data(), arr.size());
-        auto blakeHash = stellar::blake2(input);
-        size_t result = 0;
-        std::memcpy(&result, blakeHash.data(), sizeof(size_t));
-        return result;
-    }
-};
-}

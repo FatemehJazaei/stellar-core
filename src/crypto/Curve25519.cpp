@@ -1,18 +1,19 @@
 // Copyright 2015 Stellar Development Foundation and contributors. Licensed
 // under the Apache License, Version 2.0. See the COPYING file at the root
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
+#include "crypto/Curve25519.h"
 #include "crypto/BLAKE2.h"
 #include "crypto/CryptoError.h"
-#include "crypto/Dilithium2.h"
 #include "crypto/SHA.h"
 #include "util/HashOfHash.h"
 #include <Tracy.hpp>
 #include <functional>
+#include <sodium.h>
 
 #ifdef MSAN_ENABLED
 #include <sanitizer/msan_interface.h>
 #endif
-
+extern "C"
 {
 #include "dilithium.h"
 }
@@ -103,15 +104,5 @@ dilithium2Decrypt(Dilithium2Secret const& localSecret,
     }
 
     return decrypted;
-}
-}
-
-namespace std
-{
-size_t
-hash<stellar::Dilithium2Public>::operator()(
-    stellar::Dilithium2Public const& k) const noexcept
-{
-    return std::hash<xdr::opaque_array<1312>>()(k.key);
 }
 }

@@ -649,7 +649,7 @@ transactionFromOperationsV0(Application& app, SecretKey const& from,
                             const std::vector<Operation>& ops, uint32_t fee)
 {
     TransactionEnvelope e(ENVELOPE_TYPE_TX_V0);
-    e.v0().tx.sourceAccountEd25519 = from.getPublicKey().ed25519();
+    e.v0().tx.sourceAccountDilithium2 = from.getPublicKey().dilithium2();
     e.v0().tx.fee =
         fee != 0 ? fee
                  : static_cast<uint32_t>(
@@ -1686,9 +1686,9 @@ sorobanEnvelopeFromOps(Hash const& networkID, TestAccount& source,
     TransactionEnvelope tx(ENVELOPE_TYPE_TX);
     if (muxedData)
     {
-        MuxedAccount acc(CryptoKeyType::KEY_TYPE_MUXED_ED25519);
-        acc.med25519().ed25519 = source.getPublicKey().ed25519();
-        acc.med25519().id = *muxedData;
+        MuxedAccount acc(CryptoKeyType::KEY_TYPE_MUXED_DILITHIUM2);
+        acc.mdilithium2().dilithium2 = source.getPublicKey().dilithium2();
+        acc.mdilithium2().id = *muxedData;
         tx.v1().tx.sourceAccount = acc;
     }
     else

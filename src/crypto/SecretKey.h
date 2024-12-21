@@ -7,10 +7,10 @@
 #include "crypto/KeyUtils.h"
 #include "util/XDROperators.h"
 #include "xdr/Stellar-types.h"
-
 #include <array>
 #include <functional>
 #include <ostream>
+#include <sodium.h>
 extern "C"
 {
 #include "dilithium.h"
@@ -26,7 +26,7 @@ class SecretKey
 {
 
     PublicKeyType mKeyType;
-    xdr::opaque_vec<2560> mSecretKey;
+    xdr::opaque_array<2560> mSecretKey;
     PublicKey mPublicKey;
 
     struct Seed

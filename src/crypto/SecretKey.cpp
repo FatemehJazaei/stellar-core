@@ -73,10 +73,10 @@ SecretKey::SecretKey() : mKeyType(PUBLIC_KEY_TYPE_DILITHIUM2)
     static_assert(pqcrystals_dilithium2_ref_SEEDBYTES == sizeof(uint256),
                   "Unexpected seed length");
     static_assert(pqcrystals_dilithium2_ref_SECRETKEYBYTES ==
-                      sizeof(xdr::opaque_vec<2560>),
+                      sizeof(xdr::opaque_array<2560>),
                   "Unexpected secret key length");
     static_assert(pqcrystals_dilithium2_ref_BYTES ==
-                      sizeof(xdr::opaque_vec<2420>),
+                      sizeof(xdr::opaque_array<2420>),
                   "Unexpected signature length");
 }
 
@@ -108,7 +108,8 @@ SecretKey::getSeed() const
     // {
     //     throw CryptoError("error extracting seed from secret key");
     // }
-    seed.mSeed.data() = dilithium2RandomSecret().key.data();
+    size_t seedLen = pqcrystals_dilithium2_ref_SEEDBYTES;
+    randombytes_buf(seed.mSeed.data(), seedLen);
     return seed;
 }
 
@@ -150,10 +151,11 @@ SecretKey::sign(ByteSlice const& bin) const
     // {
     //     throw CryptoError("error while signing");
     // }
-    Signature out(pqcrystals_dilithium2_ref_BYTES, 0);
-    if (pqcrystals_dilithium2_ref_signature(
-            out.data(), &pqcrystals_dilithium2_ref_BYTES, bin.data(),
-            bin.size(), nullptr, 0, mSecretKey.data()) != 0)
+    size_t signatureLength = pqcrystals_dilithium2_ref_BYTES;
+    Signature out(signatureLength, 0);
+    if (pqcrystals_dilithium2_ref_signature(out.data(), &signatureLength,
+                                            bin.data(), bin.size(), nullptr, 0,
+                                            mSecretKey.data()) != 0)
     {
         throw CryptoError("error while signing");
     }
@@ -309,7 +311,8 @@ SecretKey::fromSeed(ByteSlice const& seed)
     // {
     //     throw CryptoError("error generating secret key from seed");
     // }
-    if (seed.size() != pqcrystals_dilithium2_ref_SEEDBYTES)
+    size_t seedLen = pqcrystals_dilithium2_ref_SEEDBYTES;
+    if (seed.size() != seedLen)
     {
         throw CryptoError("seed does not match byte size");
     }
@@ -326,11 +329,10 @@ SecretKey::fromStrKeySeed(std::string const& strKeySeed)
 {
     uint8_t ver;
     std::vector<uint8_t> seed;
+    size_t seedLen = pqcrystals_dilithium2_ref_SEEDBYTES;
     if (!strKey::fromStrKey(strKeySeed, ver, seed) ||
-        (ver != strKey::STRKEY_SEED_DILITHIUM2) ||
-        (seed.size() != pqcrystals_dilithium2_ref_SEEDBYTES) ||
-        (strKeySeed.size() !=
-         strKey::getStrKeySize(pqcrystals_dilithium2_ref_SEEDBYTES)))
+        (ver != strKey::STRKEY_SEED_DILITHIUM2) || (seed.size() != seedLen) ||
+        (strKeySeed.size() != strKey::getStrKeySize(seedLen)))
     {
         throw CryptoError("invalid seed");
     }
@@ -493,10 +495,10 @@ PubKeyUtils::verifySig(PublicKey const& key, Signature const& signature,
     //     (crypto_sign_verify_detached(signature.data(), bin.data(),
     //     bin.size(),
     //                                  key.dilithium2().data()) == 0);
-    bool ok =
-        (pqcrystals_dilithium2_ref_verify(
-             signature.data(), pqcrystals_dilithium2_ref_BYTES, bin.data(),
-             bin.size(), nullptr, 0, key.dilithium2().data()) == 0);
+    size_t signatureLen = pqcrystals_dilithium2_ref_BYTES;
+    bool ok = (pqcrystals_dilithium2_ref_verify(
+                   signature.data(), signatureLen, bin.data(), bin.size(),
+                   nullptr, 0, key.dilithium2().data()) == 0);
     std::lock_guard<std::mutex> guard(gVerifySigCacheMutex);
     ++gVerifyCacheMiss;
     gVerifySigCache.put(cacheKey, ok);
@@ -507,8 +509,9 @@ PublicKey
 PubKeyUtils::random()
 {
     PublicKey pk;
+    size_t publicKeyLen = pqcrystals_dilithium2_ref_PUBLICKEYBYTES;
     pk.type(PUBLIC_KEY_TYPE_DILITHIUM2);
-    pk.dilithium2().resize(pqcrystals_dilithium2_ref_PUBLICKEYBYTES);
+    pk.dilithium2().resize(publicKeyLen);
     randombytes_buf(pk.dilithium2().data(), pk.dilithium2().size());
     return pk;
 }
@@ -566,10 +569,10 @@ StrKeyUtils::logKey(std::ostream& s, std::string const& key)
     // if it's a hex string, display it in all forms
     try
     {
-        std::vector<uint8_t> data = hexToBin256(key);
+        std::vector<uint8_t> data = hexToBin(key);
         PublicKey pk;
         pk.type(PUBLIC_KEY_TYPE_DILITHIUM2);
-        pk.dilithium2() = data;
+        std::copy(data.begin(), data.end(), pk.dilithium2().begin());
         s << "Interpreted as ";
         logPublicKey(s, pk);
 

@@ -458,37 +458,39 @@ TEST_CASE("key string roundtrip", "[crypto]")
 {
     SignerKey signer;
     auto publicKey = SecretKey::pseudoRandomForTesting().getPublicKey();
-    uint256 rand256 = publicKey.ed25519();
-    SECTION("SIGNER_KEY_TYPE_ED25519")
+    xdr::opaque_array<1312> rand1312 = publicKey.dilithium2();
+    xdr::opaque_array<32> subset32;
+    std::copy(rand1312.begin(), rand1312.begin() + 32, subset32.begin());
+    SECTION("SIGNER_KEY_TYPE_DILITHIUM2")
     {
-        signer.type(SIGNER_KEY_TYPE_ED25519);
-        signer.ed25519() = rand256;
+        signer.type(SIGNER_KEY_TYPE_DILITHIUM2);
+        signer.dilithium2() = rand1312;
         REQUIRE(KeyUtils::fromStrKey<SignerKey>(KeyUtils::toStrKey(signer)) ==
                 signer);
     }
     SECTION("SIGNER_KEY_TYPE_PRE_AUTH_TX")
     {
         signer.type(SIGNER_KEY_TYPE_PRE_AUTH_TX);
-        signer.preAuthTx() = rand256;
+        signer.preAuthTx() = subset32;
         REQUIRE(KeyUtils::fromStrKey<SignerKey>(KeyUtils::toStrKey(signer)) ==
                 signer);
     }
     SECTION("SIGNER_KEY_TYPE_HASH_X")
     {
         signer.type(SIGNER_KEY_TYPE_HASH_X);
-        signer.hashX() = rand256;
+        signer.hashX() = subset32;
         REQUIRE(KeyUtils::fromStrKey<SignerKey>(KeyUtils::toStrKey(signer)) ==
                 signer);
     }
-    SECTION("SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD")
+    SECTION("SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD")
     {
-        signer.type(SIGNER_KEY_TYPE_ED25519_SIGNED_PAYLOAD);
-        signer.ed25519SignedPayload().ed25519 = rand256;
+        signer.type(SIGNER_KEY_TYPE_DILITHIUM2_SIGNED_PAYLOAD);
+        signer.dilithium2SignedPayload().dilithium2 = rand1312;
 
         for (uint32_t i = 0;
-             i < signer.ed25519SignedPayload().payload.max_size(); ++i)
+             i < signer.dilithium2SignedPayload().payload.max_size(); ++i)
         {
-            signer.ed25519SignedPayload().payload.emplace_back('1');
+            signer.dilithium2SignedPayload().payload.emplace_back('1');
             REQUIRE(KeyUtils::fromStrKey<SignerKey>(
                         KeyUtils::toStrKey(signer)) == signer);
         }
@@ -505,8 +507,8 @@ TEST_CASE("key string roundtrip", "[crypto]")
 // described in https://hdevalence.ca/blog/2020-10-04-its-25519am
 //
 // They are explained in more detail in the soroban-env-host test file
-// ed25519_edge_cases.rs. We run the same vectors here to confirm that libsodium
-// and dalek behave the same way on various edge cases.
+// dilithium2_edge_cases.rs. We run the same vectors here to confirm that
+// libsodium and dalek behave the same way on various edge cases.
 
 struct Iacr20201244TestVector
 {
@@ -516,129 +518,139 @@ struct Iacr20201244TestVector
     bool should_fail;
 };
 
-const Iacr20201244TestVector IACR_2020_1244_TEST_VECTORS[12] = {
-    // Case 0: Small-order A and R components (should be rejected) but verifies
-    // under either equality check.
-    Iacr20201244TestVector{
-        "8c93255d71dcab10e8f379c26200f3c7bd5f09d9bc3068d3ef4edeb4853022b6",
-        "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
-        "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a00"
-        "00000000000000000000000000000000000000000000000000000000000000",
-        true,
-    },
-    // Case 1: Small-order A component (should be rejected) but verifies under
-    // either equality check.
-    Iacr20201244TestVector{
-        "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
-        "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
-        "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43a5"
-        "bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
-        true,
-    },
-    // Case 2: Small-order R component (should be rejected) but verifies under
-    // either equality check.
-    Iacr20201244TestVector{
-        "aebf3f2601a0c8c5d39cc7d8911642f740b78168218da8471772b35f9d35b9ab",
-        "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
-        "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa8c"
-        "4bd45aecaca5b24fb97bc10ac27ac8751a7dfe1baff8b953ec9f5833ca260e",
-        true,
-    },
-    // Case 3: Mixed-order A and R, verifies under either equality check, should
-    // be accepted.
-    Iacr20201244TestVector{
-        "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
-        "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
-        "9046a64750444938de19f227bb80485e92b83fdb4b6506c160484c016cc1852f87"
-        "909e14428a7a1d62e9f22f3d3ad7802db02eb2e688b6c52fcd6648a98bd009",
-        false,
-    },
-    // Case 4: Mixed-order A and R, only verifies under cofactor equality check,
-    // should be rejected.
-    Iacr20201244TestVector{
-        "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
-        "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
-        "160a1cb0dc9c0258cd0a7d23e94d8fa878bcb1925f2c64246b2dee1796bed5125e"
-        "c6bc982a269b723e0668e540911a9a6a58921d6925e434ab10aa7940551a09",
-        true,
-    },
-    // Case 5: Mixed-order A, order-L R, only verifies under cofactor equality
-    // check, should be rejected.
-    Iacr20201244TestVector{
-        "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
-        "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
-        "21122a84e0b5fca4052f5b1235c80a537878b38f3142356b2c2384ebad4668b7e4"
-        "0bc836dac0f71076f9abe3a53f9c03c1ceeeddb658d0030494ace586687405",
-        true,
-    },
-    // Case 6: Order-L A and R, non-canonical S (> L), should be rejected.
-    Iacr20201244TestVector{
-        "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
-        "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
-        "e96f66be976d82e60150baecff9906684aebb1ef181f67a7189ac78ea23b6c0e54"
-        "7f7690a0e2ddcd04d87dbc3490dc19b3b3052f7ff0538cb68afb369ba3a514",
-        true,
-    },
-    // Case 7: Order-L A and R, non-canonical S (>> L) in a way that fails
-    // bitwise canonicity tests, should be rejected.
-    //
-    // NB: There's a typo (an extra 'e') in the middle of test vector 7's
-    // signature in the appendix of the paper itself, but this is corrected in
-    // Novi's formal / machine-generated testcases in
-    // https://github.com/novifinancial/ed25519-speccheck/blob/main/cases.txt
-    Iacr20201244TestVector{
-        "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
-        "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
-        "8ce5b96c8f26d0ab6c47958c9e68b937104cd36e13c33566acd2fe8d38aa19427e"
-        "71f98a473474f2f13f06f97c20d58cc3f54b8bd0d272f42b695dd7e89a8c22",
-        true,
-    },
-    // Case 8: Non-canonical R, should fail.
-    Iacr20201244TestVector{
-        "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
-        "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
-        "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff03"
-        "be9678ac102edcd92b0210bb34d7428d12ffc5df5f37e359941266a4e35f0f",
-        true},
-    // Case 9: Non-canonical R noticed at a different phase of checking in some
-    // implementations, should also fail.
-    Iacr20201244TestVector{
-        "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
-        "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
-        "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffca"
-        "8c5b64cd208982aa38d4936621a4775aa233aa0505711d8fdcfdaa943d4908",
-        true},
-    // Case 10: Non-canonical A
-    Iacr20201244TestVector{
-        "e96b7021eb39c1a163b6da4e3093dcd3f21387da4cc4572be588fafae23c155b",
-        "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5"
-        "bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
-        true},
-    // Case 11: Non-canonical A noticed at a different phase of checking in some
-    // implementations, should also fail.
-    Iacr20201244TestVector{
-        "39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f",
-        "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-        "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5"
-        "bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
-        true}};
+// const Iacr20201244TestVector IACR_2020_1244_TEST_VECTORS[12] = {
+//     // Case 0: Small-order A and R components (should be rejected) but
+//     verifies
+//     // under either equality check.
+//     Iacr20201244TestVector{
+//         "8c93255d71dcab10e8f379c26200f3c7bd5f09d9bc3068d3ef4edeb4853022b6",
+//         "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+//         "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a00"
+//         "00000000000000000000000000000000000000000000000000000000000000",
+//         true,
+//     },
+//     // Case 1: Small-order A component (should be rejected) but verifies
+//     under
+//     // either equality check.
+//     Iacr20201244TestVector{
+//         "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
+//         "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+//         "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43a5"
+//         "bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
+//         true,
+//     },
+//     // Case 2: Small-order R component (should be rejected) but verifies
+//     under
+//     // either equality check.
+//     Iacr20201244TestVector{
+//         "aebf3f2601a0c8c5d39cc7d8911642f740b78168218da8471772b35f9d35b9ab",
+//         "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+//         "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa8c"
+//         "4bd45aecaca5b24fb97bc10ac27ac8751a7dfe1baff8b953ec9f5833ca260e",
+//         true,
+//     },
+//     // Case 3: Mixed-order A and R, verifies under either equality check,
+//     should
+//     // be accepted.
+//     Iacr20201244TestVector{
+//         "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
+//         "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+//         "9046a64750444938de19f227bb80485e92b83fdb4b6506c160484c016cc1852f87"
+//         "909e14428a7a1d62e9f22f3d3ad7802db02eb2e688b6c52fcd6648a98bd009",
+//         false,
+//     },
+//     // Case 4: Mixed-order A and R, only verifies under cofactor equality
+//     check,
+//     // should be rejected.
+//     Iacr20201244TestVector{
+//         "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
+//         "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+//         "160a1cb0dc9c0258cd0a7d23e94d8fa878bcb1925f2c64246b2dee1796bed5125e"
+//         "c6bc982a269b723e0668e540911a9a6a58921d6925e434ab10aa7940551a09",
+//         true,
+//     },
+//     // Case 5: Mixed-order A, order-L R, only verifies under cofactor
+//     equality
+//     // check, should be rejected.
+//     Iacr20201244TestVector{
+//         "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
+//         "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+//         "21122a84e0b5fca4052f5b1235c80a537878b38f3142356b2c2384ebad4668b7e4"
+//         "0bc836dac0f71076f9abe3a53f9c03c1ceeeddb658d0030494ace586687405",
+//         true,
+//     },
+//     // Case 6: Order-L A and R, non-canonical S (> L), should be rejected.
+//     Iacr20201244TestVector{
+//         "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
+//         "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+//         "e96f66be976d82e60150baecff9906684aebb1ef181f67a7189ac78ea23b6c0e54"
+//         "7f7690a0e2ddcd04d87dbc3490dc19b3b3052f7ff0538cb68afb369ba3a514",
+//         true,
+//     },
+//     // Case 7: Order-L A and R, non-canonical S (>> L) in a way that fails
+//     // bitwise canonicity tests, should be rejected.
+//     //
+//     // NB: There's a typo (an extra 'e') in the middle of test vector 7's
+//     // signature in the appendix of the paper itself, but this is corrected
+//     in
+//     // Novi's formal / machine-generated testcases in
+//     //
+//     https://github.com/novifinancial/dilithium2-speccheck/blob/main/cases.txt
+//     Iacr20201244TestVector{
+//         "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
+//         "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+//         "8ce5b96c8f26d0ab6c47958c9e68b937104cd36e13c33566acd2fe8d38aa19427e"
+//         "71f98a473474f2f13f06f97c20d58cc3f54b8bd0d272f42b695dd7e89a8c22",
+//         true,
+//     },
+//     // Case 8: Non-canonical R, should fail.
+//     Iacr20201244TestVector{
+//         "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+//         "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+//         "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff03"
+//         "be9678ac102edcd92b0210bb34d7428d12ffc5df5f37e359941266a4e35f0f",
+//         true},
+//     // Case 9: Non-canonical R noticed at a different phase of checking in
+//     some
+//     // implementations, should also fail.
+//     Iacr20201244TestVector{
+//         "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+//         "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+//         "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffca"
+//         "8c5b64cd208982aa38d4936621a4775aa233aa0505711d8fdcfdaa943d4908",
+//         true},
+//     // Case 10: Non-canonical A
+//     Iacr20201244TestVector{
+//         "e96b7021eb39c1a163b6da4e3093dcd3f21387da4cc4572be588fafae23c155b",
+//         "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+//         "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5"
+//         "bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
+//         true},
+//     // Case 11: Non-canonical A noticed at a different phase of checking in
+//     some
+//     // implementations, should also fail.
+//     Iacr20201244TestVector{
+//         "39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f",
+//         "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+//         "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dca5"
+//         "bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04",
+//         true}};
 
-TEST_CASE("Ed25519 test vectors from IACR 2020/1244", "[crypto]")
-{
-    for (auto const& tv : IACR_2020_1244_TEST_VECTORS)
-    {
-        PublicKey pk;
-        pk.type(PUBLIC_KEY_TYPE_ED25519);
-        pk.ed25519() = hexToBin256(tv.pub_key);
-        auto s = hexToBin(tv.signature);
-        REQUIRE(s.size() == 64);
-        Signature sig;
-        sig.assign(s.begin(), s.end());
-        REQUIRE(PubKeyUtils::verifySig(pk, sig, hexToBin(tv.message)) !=
-                tv.should_fail);
-    }
-}
+// TEST_CASE("Dilithium2 test vectors from IACR 2020/1244", "[crypto]")
+// {
+//     for (auto const& tv : IACR_2020_1244_TEST_VECTORS)
+//     {
+//         PublicKey pk;
+//         pk.type(PUBLIC_KEY_TYPE_DILITHIUM2);
+//         pk.dilithium2() = hexToBin256(tv.pub_key);
+//         auto s = hexToBin(tv.signature);
+//         REQUIRE(s.size() == 64);
+//         Signature sig;
+//         sig.assign(s.begin(), s.end());
+//         REQUIRE(PubKeyUtils::verifySig(pk, sig, hexToBin(tv.message)) !=
+//                 tv.should_fail);
+//     }
+// }
 
 struct ZcashTestVector
 {
@@ -1628,17 +1640,17 @@ ZcashTestVector const ZCASH_TEST_VECTORS[196] = {
         "00000000000000000000000000000000000000000000000000000000000000",
     }};
 
-TEST_CASE("Ed25519 test vectors from Zcash", "[crypto]")
-{
-    for (auto const& tv : ZCASH_TEST_VECTORS)
-    {
-        PublicKey pk;
-        pk.type(PUBLIC_KEY_TYPE_ED25519);
-        pk.ed25519() = hexToBin256(tv.public_key);
-        auto s = hexToBin(tv.signature);
-        REQUIRE(s.size() == 64);
-        Signature sig;
-        sig.assign(s.begin(), s.end());
-        REQUIRE(!PubKeyUtils::verifySig(pk, sig, std::string("Zcash")));
-    }
-}
+// TEST_CASE("Dilithium2 test vectors from Zcash", "[crypto]")
+// {
+//     for (auto const& tv : ZCASH_TEST_VECTORS)
+//     {
+//         PublicKey pk;
+//         pk.type(PUBLIC_KEY_TYPE_DILITHIUM2);
+//         pk.dilithium2() = hexToBin(tv.public_key);
+//         auto s = hexToBin(tv.signature);
+//         REQUIRE(s.size() == 64);
+//         Signature sig;
+//         sig.assign(s.begin(), s.end());
+//         REQUIRE(!PubKeyUtils::verifySig(pk, sig, std::string("Zcash")));
+//     }
+// }

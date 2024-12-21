@@ -3,6 +3,9 @@
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
 #include "overlay/PeerSharedKeyId.h"
+#include "crypto/BLAKE2.h"
+#include "crypto/Curve25519.h"
+#include "xdr/Stellar-types.h"
 
 namespace stellar
 {
@@ -27,7 +30,7 @@ size_t
 hash<stellar::PeerSharedKeyId>::operator()(
     stellar::PeerSharedKeyId const& x) const noexcept
 {
-    return std::hash<stellar::Curve25519Public>{}(x.mECDHPublicKey) ^
+    return std::hash<stellar::Dilithium2Public>{}(x.mECDHPublicKey) ^
            std::hash<int>{}(static_cast<int>(x.mRole));
 }
 }

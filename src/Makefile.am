@@ -72,10 +72,12 @@ main/XDRFilesSha256.cpp: $(SRC_X_FILES) Makefile $(top_srcdir)/hash-xdrs.sh
 	$(top_srcdir)/hash-xdrs.sh protocol-curr >$@
 endif
 
+$(top_builddir)/lib/dilithium/libpqcrystals_dilithium2_ref.a: $(top_builddir)/lib/dilithium/libpqcrystals_fips202_ref.a
+
 stellar_core_LDADD = $(soci_LIBS) $(libmedida_LIBS)		\
 	$(top_builddir)/lib/lib3rdparty.a $(sqlite3_LIBS)	\
 	$(libpq_LIBS) $(xdrpp_LIBS) $(libsodium_LIBS) $(libunwind_LIBS) \
-	$(DILITHIUM_LIBS)
+	$(FIPS202_LIBS) $(DILITHIUM_LIBS)
 
 TESTDATA_DIR = testdata
 TEST_FILES = $(TESTDATA_DIR)/stellar-core_example.cfg $(TESTDATA_DIR)/stellar-core_standalone.cfg \
@@ -277,7 +279,6 @@ $(LIBRUST_STELLAR_CORE): $(RUST_HOST_DEPFILES) $(SRC_RUST_FILES) Makefile $(SORO
 	$(CARGO) rustc \
 		--package stellar-core \
 		--$(RUST_PROFILE) \
-		--locked \
 		--target-dir $(abspath $(RUST_TARGET_DIR)) \
 		$(CARGO_FEATURE_TRACY) $(CARGO_FEATURE_NEXT) $(CARGO_FEATURE_TESTUTILS) \
 		-- \

@@ -128,8 +128,8 @@ SurveyManager::startSurveyReporting(
     mRunningSurveyReportingPhaseType =
         std::make_optional<SurveyMessageCommandType>(type);
 
-    mCurve25519SecretKey = curve25519RandomSecret();
-    mCurve25519PublicKey = curve25519DerivePublic(mCurve25519SecretKey);
+    mDilithium2SecretKey = dilithium2RandomSecret();
+    mDilithium2PublicKey = dilithium2DerivePublic(mDilithium2SecretKey);
 
     // Check surveyDuration (should only be set for old style surveys; time
     // sliced surveys use a builtin timeout)
@@ -172,7 +172,7 @@ SurveyManager::stopSurveyReporting()
     mRunningSurveyReportingPhaseType.reset();
     mSurveyThrottleTimer->cancel();
 
-    clearCurve25519Keys(mCurve25519PublicKey, mCurve25519SecretKey);
+    clearDilithium2Keys(mDilithium2PublicKey, mDilithium2SecretKey);
 
     CLOG_INFO(Overlay, "SurveyResults {}", getJsonResults().toStyledString());
 }
@@ -474,8 +474,8 @@ SurveyManager::relayOrProcessResponse(StellarMessage const& msg,
         {
             try
             {
-                xdr::opaque_vec<> opaqueDecrypted = curve25519Decrypt(
-                    mCurve25519SecretKey, mCurve25519PublicKey,
+                xdr::opaque_vec<> opaqueDecrypted = dilithium2Decrypt(
+                    mDilithium2SecretKey, mDilithium2PublicKey,
                     response.encryptedBody);
 
                 SurveyResponseBody body;
@@ -611,7 +611,7 @@ SurveyManager::populateSurveyRequestMessage(NodeID const& nodeToSurvey,
     request.surveyorPeerID = mApp.getConfig().NODE_SEED.getPublicKey();
 
     request.surveyedPeerID = nodeToSurvey;
-    request.encryptionKey = mCurve25519PublicKey;
+    request.encryptionKey = mDilithium2PublicKey;
     request.commandType = type;
 }
 
@@ -757,12 +757,12 @@ SurveyManager::populateSurveyResponseMessage(
 
     try
     {
-        response.encryptedBody = curve25519Encrypt<EncryptedBody::max_size()>(
+        response.encryptedBody = dilithium2Encrypt<EncryptedBody::max_size()>(
             request.encryptionKey, xdr::xdr_to_opaque(body));
     }
     catch (std::exception const& e)
     {
-        CLOG_ERROR(Overlay, "curve25519Encrypt failed: {}", e.what());
+        CLOG_ERROR(Overlay, "dilithium2Encrypt failed: {}", e.what());
         return false;
     }
     return true;

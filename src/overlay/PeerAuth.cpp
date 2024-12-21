@@ -19,7 +19,7 @@ namespace stellar
 static const uint64_t expirationLimit = 3600;
 
 static AuthCert
-makeAuthCert(Application& app, Curve25519Public const& pub)
+makeAuthCert(Application& app, Dilithium2Public const& pub)
 {
     AuthCert cert;
     // Certs are refreshed every half hour, good for an hour.
@@ -35,8 +35,8 @@ makeAuthCert(Application& app, Curve25519Public const& pub)
 
 PeerAuth::PeerAuth(Application& app)
     : mApp(app)
-    , mECDHSecretKey(curve25519RandomSecret())
-    , mECDHPublicKey(curve25519DerivePublic(mECDHSecretKey))
+    , mECDHSecretKey(dilithium2RandomSecret())
+    , mECDHPublicKey(dilithium2DerivePublic(mECDHSecretKey))
     , mCert(makeAuthCert(app, mECDHPublicKey))
     , mSharedKeyCache(0xffff)
 {
@@ -69,7 +69,7 @@ PeerAuth::verifyRemoteAuthCert(NodeID const& remoteNode, AuthCert const& cert)
 }
 
 HmacSha256Key
-PeerAuth::getSharedKey(Curve25519Public const& remotePublic,
+PeerAuth::getSharedKey(Dilithium2Public const& remotePublic,
                        Peer::PeerRole role)
 {
     auto key = PeerSharedKeyId{remotePublic, role};
@@ -78,14 +78,14 @@ PeerAuth::getSharedKey(Curve25519Public const& remotePublic,
         return mSharedKeyCache.get(key);
     }
     auto value =
-        curve25519DeriveSharedKey(mECDHSecretKey, mECDHPublicKey, remotePublic,
+        dilithium2DeriveSharedKey(mECDHSecretKey, mECDHPublicKey, remotePublic,
                                   role == Peer::WE_CALLED_REMOTE);
     mSharedKeyCache.put(key, value);
     return value;
 }
 
 HmacSha256Key
-PeerAuth::getSendingMacKey(Curve25519Public const& remotePublic,
+PeerAuth::getSendingMacKey(Dilithium2Public const& remotePublic,
                            uint256 const& localNonce,
                            uint256 const& remoteNonce, Peer::PeerRole role)
 {
@@ -111,7 +111,7 @@ PeerAuth::getSendingMacKey(Curve25519Public const& remotePublic,
 }
 
 HmacSha256Key
-PeerAuth::getReceivingMacKey(Curve25519Public const& remotePublic,
+PeerAuth::getReceivingMacKey(Dilithium2Public const& remotePublic,
                              uint256 const& localNonce,
                              uint256 const& remoteNonce, Peer::PeerRole role)
 {

@@ -161,8 +161,8 @@ class SurveyManager : public std::enable_shared_from_this<SurveyManager>,
     // If a survey is in the reporting phase, this will be set to the type of
     // the running survey
     std::optional<SurveyMessageCommandType> mRunningSurveyReportingPhaseType;
-    Curve25519Secret mCurve25519SecretKey;
-    Curve25519Public mCurve25519PublicKey;
+    Dilithium2Secret mDilithium2SecretKey;
+    Dilithium2Public mDilithium2PublicKey;
     SurveyMessageLimiter mMessageLimiter;
 
     UnorderedSet<NodeID> mPeersToSurvey;

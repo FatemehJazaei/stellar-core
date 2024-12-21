@@ -5,12 +5,13 @@
 // of this distribution or at http://www.apache.org/licenses/LICENSE-2.0
 
 #include "ByteSlice.h"
+#include "crypto/BLAKE2.h"
 #include "util/Logging.h"
 #include "xdr/Stellar-types.h"
 #include <fmt/format.h>
 #include <functional>
 #include <sodium.h>
-
+extern "C"
 {
 #include "dilithium.h"
 }
@@ -79,10 +80,26 @@ dilithium2Encrypt(Dilithium2Public const& remotePublic, ByteSlice const& bin)
 }
 }
 
+// namespace std
+// {
+// template <> struct hash<stellar::Dilithium2Public>
+// {
+//     size_t
+//     operator()(stellar::Dilithium2Public const& k) const noexcept
+//     {
+//         return std::hash<xdr::opaque_array<1312>>()(k.key);
+//     }
+// };
+// }
 namespace std
 {
 template <> struct hash<stellar::Dilithium2Public>
 {
-    size_t operator()(stellar::Dilithium2Public const& x) const noexcept;
+    size_t
+    operator()(const stellar::Dilithium2Public& publicKey) const noexcept
+    {
+
+        return std::hash<xdr::opaque_array<1312>>{}(publicKey.key);
+    }
 };
 }

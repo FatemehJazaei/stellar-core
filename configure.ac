@@ -318,17 +318,14 @@ AM_CONDITIONAL(LIBMEDIDA_INTERNAL, test -n "$libmedida_INTERNAL")
 AC_SUBST(libmedida_CFLAGS)
 AC_SUBST(libmedida_LIBS)
 
-AC_MSG_CHECKING([for Dilithium libraries in stellar-core/lib/dilithium])
+FIPS202_CFLAGS='-isystem $(top_srcdir)/lib/dilithium'
+FIPS202_LIBS='$(top_builddir)/lib/dilithium/libpqcrystals_fips202_ref.a'
 
-DILITHIUM_DIR="$srcdir/lib/dilithium"
-DILITHIUM_LIBS="-L$DILITHIUM_DIR -lpqcrystals_fips202_ref -lpqcrystals_dilithium2_ref"
-DILITHIUM_CFLAGS="-I$DILITHIUM_DIR"
+AC_SUBST(FIPS202_LIBS)
+AC_SUBST(FIPS202_CFLAGS)
 
-if test -f "$DILITHIUM_DIR/libpqcrystals_fips202_ref.a" && test -f "$DILITHIUM_DIR/libpqcrystals_dilithium2_ref.a"; then
-    AC_MSG_RESULT([found])
-else
-    AC_MSG_ERROR([Dilithium libraries not found in $DILITHIUM_DIR])
-fi
+DILITHIUM_CFLAGS='-isystem $(top_srcdir)/lib/dilithium'
+DILITHIUM_LIBS='$(top_builddir)/lib/dilithium/libpqcrystals_dilithium2_ref.a'
 
 AC_SUBST(DILITHIUM_LIBS)
 AC_SUBST(DILITHIUM_CFLAGS)

@@ -5,7 +5,10 @@
 #include "KeyUtils.h"
 
 #include "crypto/StrKey.h"
-
+extern "C"
+{
+#include "dilithium.h"
+}
 namespace stellar
 {
 

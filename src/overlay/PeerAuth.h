@@ -25,13 +25,13 @@ class PeerAuth
     // use in a particular A-called-B p2p session.
 
     Application& mApp;
-    Curve25519Secret mECDHSecretKey;
-    Curve25519Public mECDHPublicKey;
+    Dilithium2Secret mECDHSecretKey;
+    Dilithium2Public mECDHPublicKey;
     AuthCert mCert;
 
     RandomEvictionCache<PeerSharedKeyId, HmacSha256Key> mSharedKeyCache;
 
-    HmacSha256Key getSharedKey(Curve25519Public const& remotePublic,
+    HmacSha256Key getSharedKey(Dilithium2Public const& remotePublic,
                                Peer::PeerRole role);
 
   public:
@@ -40,11 +40,11 @@ class PeerAuth
     AuthCert getAuthCert();
     bool verifyRemoteAuthCert(NodeID const& remoteNode, AuthCert const& cert);
 
-    HmacSha256Key getSendingMacKey(Curve25519Public const& remotePublic,
+    HmacSha256Key getSendingMacKey(Dilithium2Public const& remotePublic,
                                    uint256 const& localNonce,
                                    uint256 const& remoteNonce,
                                    Peer::PeerRole role);
-    HmacSha256Key getReceivingMacKey(Curve25519Public const& remotePublic,
+    HmacSha256Key getReceivingMacKey(Dilithium2Public const& remotePublic,
                                      uint256 const& localNonce,
                                      uint256 const& remoteNonce,
                                      Peer::PeerRole role);

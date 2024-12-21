@@ -17,7 +17,7 @@ TEST_CASE("messagelimiter", "[overlay][survey][messagelimiter]")
     SIMULATION_CREATE_NODE(2);
     SIMULATION_CREATE_NODE(3);
 
-    Curve25519Public temp;
+    Dilithium2Public temp;
 
     Config cfg(getTestConfig());
     cfg.NODE_SEED = v1SecretKey;

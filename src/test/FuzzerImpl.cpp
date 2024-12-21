@@ -51,27 +51,33 @@ auto constexpr MIN_ACCOUNT_BALANCE =
 uint8_t constexpr NUMBER_OF_PREGENERATED_ACCOUNTS = 5U;
 
 void
-setShortKey(uint256& ed25519, int i)
+setShortKey(xdr::opaque_array<1312>& dilithium2, int i)
 {
-    ed25519[0] = static_cast<uint8_t>(i);
+    dilithium2[0] = static_cast<uint8_t>(i);
 }
 
 void
 setShortKey(PublicKey& pk, int i)
 {
-    setShortKey(pk.ed25519(), i);
+    setShortKey(pk.dilithium2(), i);
 }
 
 uint8_t
-getShortKey(uint256 const& ed25519)
+getShortKey(xdr::opaque_array<1312> const& dilithium2)
 {
-    return ed25519[0];
+    return dilithium2[0];
+}
+
+uint8_t
+getShortKey(uint256 const& hash)
+{
+    return hash[0];
 }
 
 uint8_t
 getShortKey(PublicKey const& pk)
 {
-    return getShortKey(pk.ed25519());
+    return getShortKey(pk.dilithium2());
 }
 
 uint8_t constexpr NUMBER_OF_ASSET_ISSUER_BITS = 5;
@@ -434,7 +440,7 @@ struct xdr_fuzzer_compactor
     {
         // convert public key 1 byte
         check(1);
-        auto b = stellar::FuzzUtils::getShortKey(pk.ed25519());
+        auto b = stellar::FuzzUtils::getShortKey(pk.dilithium2());
         put_bytes(&b, 1);
     }
     template <typename T>
@@ -442,11 +448,11 @@ struct xdr_fuzzer_compactor
     operator()(T const& m)
     {
         // convert MuxedAccount -> 1 byte (same than an AccountID)
-        auto const& ed25519 = (m.type() == stellar::KEY_TYPE_ED25519)
-                                  ? m.ed25519()
-                                  : m.med25519().ed25519;
+        auto const& dilithium2 = (m.type() == stellar::KEY_TYPE_DILITHIUM2)
+                                     ? m.dilithium2()
+                                     : m.mdilithium2().dilithium2;
         check(1);
-        auto b = stellar::FuzzUtils::getShortKey(ed25519);
+        auto b = stellar::FuzzUtils::getShortKey(dilithium2);
         put_bytes(&b, 1);
     }
 
@@ -678,7 +684,7 @@ struct xdr_fuzzer_unpacker
         // convert 1 byte --> MuxedAccount (regular AccountID)
         check(1);
         std::uint8_t v = get_byte();
-        stellar::FuzzUtils::setShortKey(m.ed25519(), v);
+        stellar::FuzzUtils::setShortKey(m.dilithium2(), v);
     }
 
     template <typename T>
@@ -808,8 +814,8 @@ generator_t::operator()(stellar::PublicKey& t) const
                       stellar::FuzzUtils::NUMBER_OF_PREGENERATED_ACCOUNTS,
                   "Range of generated accounts too small");
     stellar::FuzzUtils::setShortKey(
-        t.ed25519(), static_cast<uint8_t>(stellar::rand_uniform<int>(
-                         0, NUMBER_OF_ACCOUNT_IDS_TO_GENERATE - 1)));
+        t.dilithium2(), static_cast<uint8_t>(stellar::rand_uniform<int>(
+                            0, NUMBER_OF_ACCOUNT_IDS_TO_GENERATE - 1)));
 }
 
 static int RECURSION_COUNT = 0;

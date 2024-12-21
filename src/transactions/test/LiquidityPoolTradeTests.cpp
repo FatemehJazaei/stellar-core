@@ -1255,12 +1255,43 @@ makeAsset(std::string const& code, AccountID const& issuer)
 TEST_CASE("liquidity pool id", "[tx][liquiditypool]")
 {
     AccountID acc1(PUBLIC_KEY_TYPE_DILITHIUM2);
-    acc1.dilithium2() = hexToBin256("0123456789abcdef0123456789abcdef"
-                                    "0123456789abcdef0123456789abcdef");
+    auto dynamicArray = hexToBin(
+        "e2c1d3f4657a9b0e2d7c4f8519a2b3c7d6e2a1c4d3f857b6a9e1d0c2a7b4c5f6d8e2a7"
+        "c4d3f6b1a9e0d1c3f5a2b7c4d3e2c0f7a9d6b3c2e1d7f6a4b5c0d3e2a1f5c7b4d6e0c3"
+        "d7f1a9b6c2d5e0a1c4f3e2b7d6f9a2c1d3e4f0b5a7c2d3f9a6b1e0c4d2a7f5b3e6c2d1"
+        "a9b7e0d3f2a1c4f6b5d2e7a3c0f1d9b6a2e4f5c7d1b3e6a0d2f4c5b7a9e3d0f1a2c7d4"
+        "b5e2f9a0c1d3e7b6a4f5c2e1d3a9b7f6c0e2d1a5b3f4c7d6e0a9b5e2c4d3f7a1b6e0c5"
+        "f3d7a9e2b4c1d6f5a3e2d0c4b7f9a6e1d2c5f7b4a3e6d9c1f0b2d7a6e3c4f1d0a9b5e6"
+        "f2c7d3a4e0b1f6d9c2a7b3f1e5c4d2a6f3b9e0c1d4f5a2e7c3b1d6a9e0f7b5a3d2c1f4"
+        "e6a0b9d5c3e2f7a6d4b1c5e3f9d0a2b4e1f3a7d6c2f0b5d1e6c4a9f3e2b7a1d0f5c3e4"
+        "a2b9d6f1a0c5e7d2a3b4f6c1e9a0d3f2c7a1b5e4d0a2f7b9c6d1e3f4a5e7b1c2d9a3f0"
+        "e6c1b7a4d3f5b2e7a9c0d1e6f3a4b5c2d7e9a1f0c6d5b3e2a7b9f4c0d1e5a6f2c9d3a4"
+        "e0f1b7c5d2a9e6f0b1d3c4e2f5a7b0d1c6f9e3a4b2d7c1f0a5e2b9d4c6f7e1a3b5d2f0"
+        "a4c9b7d1e6a3f4c2d0e5a9b1f3d6c0e7a4b9d5f2a1c3d6f0e2b7a5d3c4f9b1e0a6d2c1"
+        "f5e3a7b9d0e4c6f3a1b5d2e7a4f9c1d0b3e6a2f5c4d1a7b0e3d9f2c5a1d0e7b4a2f9d1"
+        "b3e6c0a7d2f3e4c5b1d7a6f2e0c9a4b3f5d1e7c2a6b0f3e1d4c9a7b2f6d3e4a9c1d2f0"
+        "e5b7a3c6d9f2a1b0e4d3f7c5a9d2e6b1c3f0a7e2d5c9a6b1f3e4d0c7b5a2f6d9e3c1a4"
+        "b7d5e6c2a9f0b4d3e1f5a7c6d2b1e0a4f9c3d5b7e6a2f0c1d9b4a7e3d2f5c1b0d6e7a3"
+        "f4b2d1c5a7f9e2d3b0a4f6c9d2e7b1a5f0d3c4e9a2b6f1d7e0c5a9f4b1e3d2c7a0f6e1"
+        "b9c3d5a4e7b0f3d9c2a6f1d0b3e5c7a2d1f9b6e0c4a3d2f7b1a9e6f0b4c1d5e3a2f9d0"
+        "b7e1c6a3f5d9c1e7a0b4f6d3e5a9c2d1f0a7b6e3f4c9d0a1b3e7c2f5a4d9e1b6f0c3a2"
+        "d4b5e6a1f3c0d7b9e2a4f6d1c3e0b5d9a7f2c4e3b6d0a1f7e4c9b3a6d2f5b1c0e7d9a3"
+        "f4c1e5a7b0d2e3f9a1c5d7b6a2f4c9d1e0b3a6f5e7d2c1a4b9f3e0d1a6b2c7e4d3f0a1"
+        "b5d9c6a3e1f4b7d0c5a9e2b1f6d4a3e0f9c2a1d7b5e6f4c0a7d1b9e3a5f2d0c4b7a1e6"
+        "d5f9c3a0b2e4d1f7a5c2e0d3f9b1a4c5d6e2f7a3b9d0e5a7c4f1b2d6e3a0f4c7b1d9e5"
+        "a3c0f2d6a1e7b5d4c2a3e9f5d6b1e0c4a7d3f0a1b9c2e7f6d3a4b1e5f2a0c9d6b1a3f4"
+        "d0e2a5c7b6f9d4a1e7c3b2f0d9a5e1c6b3f4d0a2e9b5d3f7a6c4e0b1d2f9a7b3d4e6f0"
+        "c1a9d5e2f4b7c3d1a6e0f9c2b1a7d3e6a0f1c5b4d9e7a3f0b1c4d2a9f5e6b3d0c1a7e4"
+        "f2a1d9c5e7b0a3f6d4c1e5b9a2f0d7c3a4b1f2e0a6d3c5b7e9a1d0f4b3e6a7d1f0c2b9"
+        "a5d3e1c7b0f2e4d6a3c9b5f1a7d2e0b3c4a6f0e7d5b9a1f3c2a4d0e6b7f9c3d1a5e7b4"
+        "d6a0c9f2e1b3a6d4f9c7e0b1a2f5d3e9a1c4b7e6d2a3f9c5d0b4e1a7f3c9b2a6e0d5f4"
+        "a1b7");
+    std::copy(dynamicArray.begin(), dynamicArray.end(),
+              acc1.dilithium2().begin());
 
     AccountID acc2(PUBLIC_KEY_TYPE_DILITHIUM2);
-    acc2.dilithium2() = hexToBin256("abcdef0123456789abcdef0123456789"
-                                    "abcdef0123456789abcdef0123456789");
+    std::copy(dynamicArray.begin(), dynamicArray.end(),
+              acc2.dilithium2().begin());
 
     // NATIVE and ALPHANUM4 (short and full length)
     testGetPoolID(
