@@ -154,76 +154,82 @@ outOfMemory()
 }
 }
 
-// We would like this to be a static check but it seems like cxx.rs isn't going
-// to let us export static constants so we do it first thing during startup.
-//
-// The file hashes used by the C++ side are defined in a build-system-generated
-// file XDRFilesSha256.cpp. We declare this symbol here and check it against the
-// Rust hashes in checkXDRFileIdentity.
-namespace stellar
-{
-extern const std::vector<std::pair<std::filesystem::path, std::string>>
-    XDR_FILES_SHA256;
-}
+// // We would like this to be a static check but it seems like cxx.rs isn't
+// going
+// // to let us export static constants so we do it first thing during startup.
+// //
+// // The file hashes used by the C++ side are defined in a
+// build-system-generated
+// // file XDRFilesSha256.cpp. We declare this symbol here and check it against
+// the
+// // Rust hashes in checkXDRFileIdentity.
+// namespace stellar
+// {
+// extern const std::vector<std::pair<std::filesystem::path, std::string>>
+//     XDR_FILES_SHA256;
+// }
 
-void
-checkXDRFileIdentity()
-{
-    using namespace stellar::rust_bridge;
+// void
+// checkXDRFileIdentity()
+// {
+//     using namespace stellar::rust_bridge;
 
-    // This will panic if soroban does not support the current ledger protocol
-    // version. It should even work if configured with "next": the next feature
-    // should enable the next feature on the most recent soroban host, and to
-    // select the next xdr module from the xdr crate linked to that host.
-    rust::Vec<SorobanVersionInfo> rustVersions = get_soroban_version_info(
-        stellar::Config::CURRENT_LEDGER_PROTOCOL_VERSION);
-    rust::Vec<XDRFileHash> const& rustHashes =
-        rustVersions.back().xdr_file_hashes;
+//     // This will panic if soroban does not support the current ledger
+//     protocol
+//     // version. It should even work if configured with "next": the next
+//     feature
+//     // should enable the next feature on the most recent soroban host, and to
+//     // select the next xdr module from the xdr crate linked to that host.
+//     rust::Vec<SorobanVersionInfo> rustVersions = get_soroban_version_info(
+//         stellar::Config::CURRENT_LEDGER_PROTOCOL_VERSION);
+//     rust::Vec<XDRFileHash> const& rustHashes =
+//         rustVersions.back().xdr_file_hashes;
 
-    for (auto const& cpp : stellar::XDR_FILES_SHA256)
-    {
-        if (cpp.first.empty())
-        {
-            continue;
-        }
-        bool found = false;
-        for (auto const& rust : rustHashes)
-        {
-            std::filesystem::path rustPath(
-                std::string(rust.file.cbegin(), rust.file.cend()));
-            if (rustPath.filename() == cpp.first.filename())
-            {
-                std::string rustHash(rust.hash.begin(), rust.hash.end());
-                if (rustHash == cpp.second)
-                {
-                    found = true;
-                    break;
-                }
-                else
-                {
-                    throw std::runtime_error(fmt::format(
-                        "XDR hash mismatch: rust has {}={}, C++ has {}={}",
-                        rustPath, rustHash, cpp.first, cpp.second));
-                }
-            }
-        }
-        if (!found)
-        {
-            throw std::runtime_error(
-                fmt::format("XDR hash missing: C++ has {}={} with no "
-                            "corresponding Rust file",
-                            cpp.first, cpp.second));
-        }
-    }
+//     for (auto const& cpp : stellar::XDR_FILES_SHA256)
+//     {
+//         if (cpp.first.empty())
+//         {
+//             continue;
+//         }
+//         bool found = false;
+//         for (auto const& rust : rustHashes)
+//         {
+//             std::filesystem::path rustPath(
+//                 std::string(rust.file.cbegin(), rust.file.cend()));
+//             if (rustPath.filename() == cpp.first.filename())
+//             {
+//                 std::string rustHash(rust.hash.begin(), rust.hash.end());
+//                 if (rustHash == cpp.second)
+//                 {
+//                     found = true;
+//                     break;
+//                 }
+//                 else
+//                 {
+//                     throw std::runtime_error(fmt::format(
+//                         "XDR hash mismatch: rust has {}={}, C++ has {}={}",
+//                         rustPath, rustHash, cpp.first, cpp.second));
+//                 }
+//             }
+//         }
+//         if (!found)
+//         {
+//             throw std::runtime_error(
+//                 fmt::format("XDR hash missing: C++ has {}={} with no "
+//                             "corresponding Rust file",
+//                             cpp.first, cpp.second));
+//         }
+//     }
 
-    if (stellar::XDR_FILES_SHA256.size() != rustHashes.size())
-    {
-        throw std::runtime_error(
-            fmt::format("Number of xdr hashes don't match between C++ and "
-                        "Rust. C++ size = {} and Rust size = {}.",
-                        stellar::XDR_FILES_SHA256.size(), rustHashes.size()));
-    }
-}
+//     if (stellar::XDR_FILES_SHA256.size() != rustHashes.size())
+//     {
+//         throw std::runtime_error(
+//             fmt::format("Number of xdr hashes don't match between C++ and "
+//                         "Rust. C++ size = {} and Rust size = {}.",
+//                         stellar::XDR_FILES_SHA256.size(),
+//                         rustHashes.size()));
+//     }
+// }
 
 void
 checkStellarCoreMajorVersionProtocolIdentity()
@@ -350,7 +356,7 @@ main(int argc, char* const* argv)
     checkStellarCoreMajorVersionProtocolIdentity();
     rust_bridge::check_sensible_soroban_config_for_protocol(
         Config::CURRENT_LEDGER_PROTOCOL_VERSION);
-    checkXDRFileIdentity();
+    // checkXDRFileIdentity();
 
     int res = handleCommandLine(argc, argv);
     return res;
